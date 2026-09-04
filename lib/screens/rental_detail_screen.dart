@@ -12,7 +12,8 @@ class RentalDetailScreen extends StatefulWidget {
   final Rental rental;
   final Bike bike;
 
-  const RentalDetailScreen({super.key, required this.rental, required this.bike});
+  const RentalDetailScreen(
+      {super.key, required this.rental, required this.bike});
 
   @override
   State<RentalDetailScreen> createState() => _RentalDetailScreenState();
@@ -21,13 +22,26 @@ class RentalDetailScreen extends StatefulWidget {
 class _RentalDetailScreenState extends State<RentalDetailScreen> {
   bool _ending = false;
 
+  String _formatDuration(Duration duration) {
+    final minutes = duration.inMinutes;
+    if (minutes <= 0) return '0 minutes';
+
+    final hours = minutes ~/ 60;
+    final remainingMinutes = minutes % 60;
+    if (hours == 0) return '$remainingMinutes minutes';
+    if (remainingMinutes == 0) return '$hours ${hours == 1 ? 'hour' : 'hours'}';
+    return '$hours ${hours == 1 ? 'hour' : 'hours'} $remainingMinutes minutes';
+  }
+
   Future<void> _endTrip() async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('End trip?'),
         content: Text(
-          'Mark ${widget.bike.model} (${widget.bike.number}) as returned by ${widget.rental.customerName}?',
+          'Mark ${widget.bike.model} (${widget.bike.number}) as returned by ${widget.rental.customerName}?\n\n'
+          'Planned duration: ${_formatDuration(widget.rental.endDateTime.difference(widget.rental.startDateTime))}\n'
+          'Total duration now: ${_formatDuration(DateTime.now().difference(widget.rental.startDateTime))}',
         ),
         actions: [
           TextButton(
@@ -46,7 +60,8 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
     setState(() => _ending = true);
     await DatabaseHelper.instance
         .completeRental(widget.rental.id!, DateTime.now());
-    await DatabaseHelper.instance.updateBikeStatus(widget.bike.id!, 'available');
+    await DatabaseHelper.instance
+        .updateBikeStatus(widget.bike.id!, 'available');
     if (!mounted) return;
     Navigator.of(context).pop(true);
   }
@@ -72,7 +87,8 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.two_wheeler_rounded, color: AppColors.primaryRed),
+                  const Icon(Icons.two_wheeler_rounded,
+                      color: AppColors.primaryRed),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -87,7 +103,8 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
                   ),
                   if (rental.status == 'active')
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
                         color: overdue
                             ? AppColors.danger.withValues(alpha: 0.14)
@@ -116,20 +133,40 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
             const SizedBox(height: 22),
             Text('Trip window', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 10),
-            _InfoRow(label: 'Start', value: dateFormat.format(rental.startDateTime)),
-            _InfoRow(label: 'End', value: dateFormat.format(rental.endDateTime)),
-            if (rental.actualReturnDateTime != null)
+            _InfoRow(
+                label: 'Start', value: dateFormat.format(rental.startDateTime)),
+            _InfoRow(
+                label: 'End', value: dateFormat.format(rental.endDateTime)),
+            _InfoRow(
+              label: 'Planned duration',
+              value: _formatDuration(
+                rental.endDateTime.difference(rental.startDateTime),
+              ),
+            ),
+            if (rental.actualReturnDateTime != null) ...[
               _InfoRow(
                 label: 'Returned',
                 value: dateFormat.format(rental.actualReturnDateTime!),
               ),
+              _InfoRow(
+                label: 'Actual duration',
+                value: _formatDuration(
+                  rental.actualReturnDateTime!.difference(rental.startDateTime),
+                ),
+              ),
+            ],
             const SizedBox(height: 22),
             Text('Charges', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 10),
-            _InfoRow(label: 'Rent charge', value: '₹${rental.rentCharge.toStringAsFixed(0)}'),
-            _InfoRow(label: 'Deposit', value: '₹${rental.deposit.toStringAsFixed(0)}'),
+            _InfoRow(
+                label: 'Rent charge',
+                value: '₹${rental.rentCharge.toStringAsFixed(0)}'),
+            _InfoRow(
+                label: 'Deposit',
+                value: '₹${rental.deposit.toStringAsFixed(0)}'),
             const SizedBox(height: 22),
-            Text('Verification photos', style: Theme.of(context).textTheme.titleLarge),
+            Text('Verification photos',
+                style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 10),
             Row(
               children: [
@@ -183,7 +220,8 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text(label, style: const TextStyle(color: AppColors.textSecondary)),
+            child: Text(label,
+                style: const TextStyle(color: AppColors.textSecondary)),
           ),
           Expanded(
             child: Text(
@@ -226,7 +264,8 @@ class _PhotoView extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(14),
             child: file.existsSync()
-                ? Image.file(file, height: 120, width: double.infinity, fit: BoxFit.cover)
+                ? Image.file(file,
+                    height: 120, width: double.infinity, fit: BoxFit.cover)
                 : Container(
                     height: 120,
                     color: AppColors.cardMuted,
@@ -236,7 +275,8 @@ class _PhotoView extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(label,
-              style: const TextStyle(fontSize: 12.5, color: AppColors.textSecondary)),
+              style: const TextStyle(
+                  fontSize: 12.5, color: AppColors.textSecondary)),
         ],
       ),
     );

@@ -36,6 +36,17 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
   bool _saving = false;
   final _picker = ImagePicker();
 
+  String _formatDuration(Duration duration) {
+    final minutes = duration.inMinutes;
+    if (minutes <= 0) return '0 minutes';
+
+    final hours = minutes ~/ 60;
+    final remainingMinutes = minutes % 60;
+    if (hours == 0) return '$remainingMinutes minutes';
+    if (remainingMinutes == 0) return '$hours ${hours == 1 ? 'hour' : 'hours'}';
+    return '$hours ${hours == 1 ? 'hour' : 'hours'} $remainingMinutes minutes';
+  }
+
   Future<void> _pickImage(bool isPersonPhoto) async {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
@@ -132,8 +143,9 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
       startDateTime: _startDateTime,
       endDateTime: _endDateTime,
       rentCharge: double.parse(_chargeController.text.trim()),
-      deposit: double.parse(
-          _depositController.text.trim().isEmpty ? '0' : _depositController.text.trim()),
+      deposit: double.parse(_depositController.text.trim().isEmpty
+          ? '0'
+          : _depositController.text.trim()),
     );
 
     await DatabaseHelper.instance.insertRental(rental);
@@ -191,7 +203,8 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
                 ),
               ),
               const SizedBox(height: 22),
-              Text('Customer details', style: Theme.of(context).textTheme.titleLarge),
+              Text('Customer details',
+                  style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 14),
               TextFormField(
                 controller: _nameController,
@@ -221,7 +234,8 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
                     child: TextFormField(
                       controller: _contactController,
                       keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(labelText: 'Contact number'),
+                      decoration:
+                          const InputDecoration(labelText: 'Contact number'),
                       validator: (v) => (v == null || v.trim().length < 10)
                           ? 'Enter valid number'
                           : null,
@@ -233,13 +247,15 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
               TextFormField(
                 controller: _aadharController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Aadhar card number'),
+                decoration:
+                    const InputDecoration(labelText: 'Aadhar card number'),
                 validator: (v) => (v == null || v.trim().length < 4)
                     ? 'Enter Aadhar number'
                     : null,
               ),
               const SizedBox(height: 22),
-              Text('Verification photos', style: Theme.of(context).textTheme.titleLarge),
+              Text('Verification photos',
+                  style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 14),
               Row(
                 children: [
@@ -261,7 +277,8 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
                 ],
               ),
               const SizedBox(height: 22),
-              Text('Trip window', style: Theme.of(context).textTheme.titleLarge),
+              Text('Trip window',
+                  style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 14),
               _DateTimeTile(
                 label: 'Start',
@@ -274,6 +291,35 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
                 value: dateFormat.format(_endDateTime),
                 onTap: () => _pickDateTime(false),
               ),
+              const SizedBox(height: 10),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                decoration: BoxDecoration(
+                  color: AppColors.cardMuted,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.schedule_outlined,
+                        color: AppColors.primaryRed),
+                    const SizedBox(width: 10),
+                    const Text('Total duration',
+                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    const Spacer(),
+                    Text(
+                      _endDateTime.isAfter(_startDateTime)
+                          ? _formatDuration(
+                              _endDateTime.difference(_startDateTime))
+                          : 'Select a valid end time',
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 22),
               Text('Charges', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 14),
@@ -282,9 +328,10 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
                   Expanded(
                     child: TextFormField(
                       controller: _chargeController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(
-                          labelText: 'Rent charge (₹)'),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      decoration:
+                          const InputDecoration(labelText: 'Rent charge (₹)'),
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) return 'Required';
                         if (double.tryParse(v.trim()) == null) return 'Invalid';
@@ -296,8 +343,10 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
                   Expanded(
                     child: TextFormField(
                       controller: _depositController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'Deposit (₹)'),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      decoration:
+                          const InputDecoration(labelText: 'Deposit (₹)'),
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) return null;
                         if (double.tryParse(v.trim()) == null) return 'Invalid';
@@ -373,11 +422,12 @@ class _PhotoPickerTile extends StatelessWidget {
                 alignment: Alignment.bottomLeft,
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
                   decoration: const BoxDecoration(
                     color: Colors.black45,
-                    borderRadius: BorderRadius.vertical(
-                        bottom: Radius.circular(16)),
+                    borderRadius:
+                        BorderRadius.vertical(bottom: Radius.circular(16)),
                   ),
                   child: Text(
                     label,
@@ -415,7 +465,8 @@ class _DateTimeTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.schedule_rounded, color: AppColors.primaryRed, size: 20),
+            const Icon(Icons.schedule_rounded,
+                color: AppColors.primaryRed, size: 20),
             const SizedBox(width: 12),
             Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
             const Spacer(),
