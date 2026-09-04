@@ -21,7 +21,9 @@ class DatabaseHelper {
     final path = join(dbPath, 'ridr.db');
     return openDatabase(
       path,
-      version: 1,
+      // Keep the current schema version so installations that opened the
+      // payment-method build do not hit a database downgrade.
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE bikes (
@@ -49,9 +51,15 @@ class DatabaseHelper {
             deposit REAL NOT NULL,
             status TEXT NOT NULL DEFAULT 'active',
             actualReturnDateTime TEXT,
+            paymentMethod TEXT,
             FOREIGN KEY (bikeId) REFERENCES bikes (id)
           )
         ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute('ALTER TABLE rentals ADD COLUMN paymentMethod TEXT');
+        }
       },
     );
   }
