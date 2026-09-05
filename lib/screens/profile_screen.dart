@@ -109,6 +109,73 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
   }
 
+  Future<void> _editNames() async {
+    final nameController = TextEditingController(text: _ownerName);
+    final shopController = TextEditingController(text: _shopName);
+    final formKey = GlobalKey<FormState>();
+
+    final saved = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(
+            20, 20, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
+        child: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Edit details', style: Theme.of(ctx).textTheme.titleLarge),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: nameController,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(labelText: 'Your name'),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Enter your name' : null,
+              ),
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: shopController,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(labelText: 'Shop name'),
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Enter your shop name'
+                    : null,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (!formKey.currentState!.validate()) return;
+                    Navigator.of(ctx).pop(true);
+                  },
+                  child: const Text('Save'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (saved != true) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('owner_name', nameController.text.trim());
+    await prefs.setString('shop_name', shopController.text.trim());
+    if (!mounted) return;
+    setState(() {
+      _ownerName = nameController.text.trim();
+      _shopName = shopController.text.trim();
+    });
+  }
+
   void _shareApp() {
     SharePlus.instance.share(ShareParams(
       text: 'Check out Ridr — the easiest way to manage a bike rental '
@@ -197,6 +264,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       companyPhotoPath: _companyPhotoPath,
                       onTapProfilePhoto: () => _pickPhoto(isProfile: true),
                       onTapCompanyPhoto: () => _pickPhoto(isProfile: false),
+                      onTapEdit: _editNames,
                     ),
                     const SizedBox(height: 14),
                     Padding(
@@ -218,8 +286,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             icon: Icons.category_outlined,
                             label: 'Vehicle Types',
                             subtitle: 'Choose what shows on your home screen',
-                            onTap: () =>
-                                _goTo(const VehicleVisibilityScreen()),
+                            onTap: () => _goTo(const VehicleVisibilityScreen()),
                           ),
                           ValueListenableBuilder<AppCurrency>(
                             valueListenable:
@@ -292,6 +359,7 @@ class _ProfileHeader extends StatelessWidget {
   final String? companyPhotoPath;
   final VoidCallback onTapProfilePhoto;
   final VoidCallback onTapCompanyPhoto;
+  final VoidCallback onTapEdit;
 
   const _ProfileHeader({
     required this.ownerName,
@@ -300,6 +368,7 @@ class _ProfileHeader extends StatelessWidget {
     required this.companyPhotoPath,
     required this.onTapProfilePhoto,
     required this.onTapCompanyPhoto,
+    required this.onTapEdit,
   });
 
   @override
@@ -359,10 +428,10 @@ class _ProfileHeader extends StatelessWidget {
                       child: CircleAvatar(
                         radius: 34,
                         backgroundColor: AppColors.cardMuted,
-                        backgroundImage: profileFile != null &&
-                                profileFile.existsSync()
-                            ? FileImage(profileFile)
-                            : null,
+                        backgroundImage:
+                            profileFile != null && profileFile.existsSync()
+                                ? FileImage(profileFile)
+                                : null,
                         child: profileFile == null || !profileFile.existsSync()
                             ? Text(
                                 ownerName.isNotEmpty
@@ -396,17 +465,29 @@ class _ProfileHeader extends StatelessWidget {
         const SizedBox(height: 44),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                shopName.isNotEmpty ? shopName : 'Your shop',
-                style: Theme.of(context).textTheme.headlineSmall,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      shopName.isNotEmpty ? shopName : 'Your shop',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Managed by $ownerName',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 2),
-              Text(
-                'Managed by $ownerName',
-                style: Theme.of(context).textTheme.bodyMedium,
+              IconButton(
+                tooltip: 'Edit name & shop name',
+                icon: Icon(Icons.edit_outlined, color: AppColors.textSecondary),
+                onPressed: onTapEdit,
               ),
             ],
           ),
@@ -479,8 +560,7 @@ class _MenuTile extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded,
-                  color: AppColors.textSecondary),
+              Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
             ],
           ),
         ),
