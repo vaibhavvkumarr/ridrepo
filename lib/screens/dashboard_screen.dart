@@ -204,7 +204,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               const SizedBox(height: 14),
                                               DashboardStatRow(
                                                 icon: Icons.payments_outlined,
-                                                label: "Today's collection",
+                                                label: "Today's Collection",
                                                 value:
                                                     '${currency.symbol}${todaysCollection.toStringAsFixed(0)}',
                                               ),
@@ -213,14 +213,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                 icon: Icons
                                                     .assignment_return_outlined,
                                                 label:
-                                                    'Vehicles to be returned today',
+                                                    'Returns Today',
                                                 value: '$returningToday',
                                               ),
                                               const SizedBox(height: 10),
                                               DashboardStatRow(
                                                 icon: Icons
                                                     .account_balance_wallet_outlined,
-                                                label: 'Deposit you hold',
+                                                label: 'Deposit Held',
                                                 value:
                                                     '${currency.symbol}${depositHeld.toStringAsFixed(0)}',
                                               ),

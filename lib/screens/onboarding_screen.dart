@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../theme/app_theme.dart';
 import 'dashboard_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -49,18 +48,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryRed,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Icon(
-                    Icons.two_wheeler_rounded,
-                    color: Colors.white,
-                    size: 38,
-                  ),
+                Image.asset(
+                  'assets/images/app_icon.png',
+                  height: 56,
                 ),
                 const SizedBox(height: 28),
                 Text(
