@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../db/database_helper.dart';
-import '../models/bike.dart';
+import '../models/vehicle.dart';
+import '../models/vehicle_type.dart';
 import '../theme/app_theme.dart';
 
 const _frequentColours = <(String, Color)>[
@@ -17,14 +18,15 @@ const _frequentColours = <(String, Color)>[
   ('Maroon', Color(0xFF800000)),
 ];
 
-class AddBikeScreen extends StatefulWidget {
-  const AddBikeScreen({super.key});
+class AddVehicleScreen extends StatefulWidget {
+  final VehicleType type;
+  const AddVehicleScreen({super.key, required this.type});
 
   @override
-  State<AddBikeScreen> createState() => _AddBikeScreenState();
+  State<AddVehicleScreen> createState() => _AddVehicleScreenState();
 }
 
-class _AddBikeScreenState extends State<AddBikeScreen> {
+class _AddVehicleScreenState extends State<AddVehicleScreen> {
   final _formKey = GlobalKey<FormState>();
   final _modelController = TextEditingController();
   final _numberController = TextEditingController();
@@ -38,12 +40,13 @@ class _AddBikeScreenState extends State<AddBikeScreen> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
-    final bike = Bike(
+    final vehicle = Vehicle(
+      type: widget.type,
       model: _modelController.text.trim(),
       number: _numberController.text.trim().toUpperCase(),
       colour: _colourController.text.trim(),
     );
-    await DatabaseHelper.instance.insertBike(bike);
+    await DatabaseHelper.instance.insertVehicle(vehicle);
     if (!mounted) return;
     Navigator.of(context).pop();
   }
@@ -58,8 +61,9 @@ class _AddBikeScreenState extends State<AddBikeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final label = widget.type.label;
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Bike')),
+      appBar: AppBar(title: Text('Add $label')),
       body: SafeArea(
         child: Form(
           key: _formKey,
@@ -69,23 +73,24 @@ class _AddBikeScreenState extends State<AddBikeScreen> {
               TextFormField(
                 controller: _modelController,
                 textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  labelText: 'Bike model',
-                  hintText: 'e.g. Honda Activa 6G',
+                decoration: InputDecoration(
+                  labelText: '$label model',
+                  hintText: widget.type.modelHint,
                 ),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Enter bike model' : null,
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Enter $label model'
+                    : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _numberController,
                 textCapitalization: TextCapitalization.characters,
-                decoration: const InputDecoration(
-                  labelText: 'Bike number',
+                decoration: InputDecoration(
+                  labelText: '$label number',
                   hintText: 'e.g. MH12AB1234',
                 ),
                 validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Enter bike number'
+                    ? 'Enter $label number'
                     : null,
               ),
               const SizedBox(height: 16),
@@ -129,7 +134,7 @@ class _AddBikeScreenState extends State<AddBikeScreen> {
                           strokeWidth: 2.4,
                         ),
                       )
-                    : const Text('Save bike'),
+                    : Text('Save $label'),
               ),
             ],
           ),

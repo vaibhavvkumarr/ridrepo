@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
 
 import '../db/database_helper.dart';
-import '../models/bike.dart';
-// import '../models/rental.dart';
+import '../models/vehicle.dart';
+import '../models/vehicle_type.dart';
 import '../theme/app_theme.dart';
 
 class RevenueScreen extends StatefulWidget {
-  const RevenueScreen({super.key});
+  final VehicleType type;
+  const RevenueScreen({super.key, required this.type});
 
   @override
   State<RevenueScreen> createState() => _RevenueScreenState();
 }
 
-class _BikeRevenue {
-  final Bike bike;
+class _VehicleRevenue {
+  final Vehicle vehicle;
   final double total;
   final int trips;
-  _BikeRevenue(this.bike, this.total, this.trips);
+  _VehicleRevenue(this.vehicle, this.total, this.trips);
 }
 
 class _RevenueScreenState extends State<RevenueScreen> {
-  List<_BikeRevenue> _rows = [];
+  List<_VehicleRevenue> _rows = [];
   double _grandTotal = 0;
   bool _loading = true;
 
@@ -31,20 +32,22 @@ class _RevenueScreenState extends State<RevenueScreen> {
   }
 
   Future<void> _load() async {
-    final bikes = await DatabaseHelper.instance.getAllBikes();
-    final rentals = await DatabaseHelper.instance.getAllRentals();
+    final vehicles =
+        await DatabaseHelper.instance.getAllVehicles(type: widget.type);
+    final rentals =
+        await DatabaseHelper.instance.getAllRentals(type: widget.type);
     final completed = rentals.where((r) => r.status == 'completed').toList();
 
-    final rows = <_BikeRevenue>[];
+    final rows = <_VehicleRevenue>[];
     double grand = 0;
-    for (final bike in bikes) {
-      final bikeRentals =
-          completed.where((r) => r.bikeId == bike.id).toList();
+    for (final vehicle in vehicles) {
+      final vehicleRentals =
+          completed.where((r) => r.vehicleId == vehicle.id).toList();
       final total =
-          bikeRentals.fold<double>(0, (sum, r) => sum + r.rentCharge);
+          vehicleRentals.fold<double>(0, (sum, r) => sum + r.rentCharge);
       grand += total;
-      if (bikeRentals.isNotEmpty) {
-        rows.add(_BikeRevenue(bike, total, bikeRentals.length));
+      if (vehicleRentals.isNotEmpty) {
+        rows.add(_VehicleRevenue(vehicle, total, vehicleRentals.length));
       }
     }
     rows.sort((a, b) => b.total.compareTo(a.total));
@@ -60,7 +63,7 @@ class _RevenueScreenState extends State<RevenueScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Revenue Generated')),
+      appBar: AppBar(title: Text('${widget.type.label} Revenue')),
       body: SafeArea(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
@@ -120,7 +123,7 @@ class _RevenueScreenState extends State<RevenueScreen> {
                                 color: AppColors.cardMuted,
                                 borderRadius: BorderRadius.circular(14),
                               ),
-                              child: const Icon(Icons.two_wheeler_rounded,
+                              child: Icon(widget.type.icon,
                                   color: AppColors.primaryRed),
                             ),
                             const SizedBox(width: 14),
@@ -128,14 +131,14 @@ class _RevenueScreenState extends State<RevenueScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(row.bike.model,
+                                  Text(row.vehicle.model,
                                       style: Theme.of(context)
                                           .textTheme
                                           .titleLarge
                                           ?.copyWith(fontSize: 15.5)),
                                   const SizedBox(height: 2),
                                   Text(
-                                    '${row.bike.number} · ${row.trips} trip${row.trips == 1 ? '' : 's'}',
+                                    '${row.vehicle.number} · ${row.trips} trip${row.trips == 1 ? '' : 's'}',
                                     style: Theme.of(context).textTheme.bodyMedium,
                                   ),
                                 ],

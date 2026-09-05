@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../db/database_helper.dart';
 import '../models/customer.dart';
 import '../models/rental.dart';
+import '../models/vehicle_type.dart';
 import '../theme/app_theme.dart';
 import 'customer_detail_screen.dart';
 
@@ -23,7 +24,8 @@ class _CustomerSummary {
 }
 
 class AllCustomersScreen extends StatefulWidget {
-  const AllCustomersScreen({super.key});
+  final VehicleType type;
+  const AllCustomersScreen({super.key, required this.type});
 
   @override
   State<AllCustomersScreen> createState() => _AllCustomersScreenState();
@@ -42,7 +44,8 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
   }
 
   Future<void> _load() async {
-    final rentals = await DatabaseHelper.instance.getAllRentals();
+    final rentals =
+        await DatabaseHelper.instance.getAllRentals(type: widget.type);
     final customers = await DatabaseHelper.instance.getAllCustomers();
     if (!mounted) return;
     setState(() {
@@ -132,7 +135,7 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
     final summaries = _customerSummaries;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('All Customers'),
+        title: Text('${widget.type.label} Customers'),
         actions: [
           IconButton(
             tooltip: 'Filter customers',

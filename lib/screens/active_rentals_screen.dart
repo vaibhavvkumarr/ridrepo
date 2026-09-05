@@ -2,21 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../db/database_helper.dart';
-import '../models/bike.dart';
 import '../models/rental.dart';
+import '../models/vehicle.dart';
+import '../models/vehicle_type.dart';
 import '../theme/app_theme.dart';
 import 'rental_detail_screen.dart';
 
-class RentLeisureScreen extends StatefulWidget {
-  const RentLeisureScreen({super.key});
+class ActiveRentalsScreen extends StatefulWidget {
+  final VehicleType type;
+  const ActiveRentalsScreen({super.key, required this.type});
 
   @override
-  State<RentLeisureScreen> createState() => _RentLeisureScreenState();
+  State<ActiveRentalsScreen> createState() => _ActiveRentalsScreenState();
 }
 
-class _RentLeisureScreenState extends State<RentLeisureScreen> {
+class _ActiveRentalsScreenState extends State<ActiveRentalsScreen> {
   List<Rental> _rentals = [];
-  Map<int, Bike> _bikesById = {};
+  Map<int, Vehicle> _vehiclesById = {};
   bool _loading = true;
 
   @override
@@ -26,12 +28,14 @@ class _RentLeisureScreenState extends State<RentLeisureScreen> {
   }
 
   Future<void> _load() async {
-    final rentals = await DatabaseHelper.instance.getActiveRentals();
-    final bikes = await DatabaseHelper.instance.getAllBikes();
+    final rentals =
+        await DatabaseHelper.instance.getActiveRentals(type: widget.type);
+    final vehicles =
+        await DatabaseHelper.instance.getAllVehicles(type: widget.type);
     if (!mounted) return;
     setState(() {
       _rentals = rentals;
-      _bikesById = {for (final b in bikes) b.id!: b};
+      _vehiclesById = {for (final v in vehicles) v.id!: v};
       _loading = false;
     });
   }
@@ -39,15 +43,16 @@ class _RentLeisureScreenState extends State<RentLeisureScreen> {
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('d MMM, h:mm a');
+    final pluralLower = widget.type.pluralLabel.toLowerCase();
     return Scaffold(
-      appBar: AppBar(title: const Text('Rent Leisure')),
+      appBar: AppBar(title: Text('${widget.type.pluralLabel} On Rent')),
       body: SafeArea(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
             : _rentals.isEmpty
                 ? Center(
                     child: Text(
-                      'No bikes are currently rented out.',
+                      'No $pluralLower are currently rented out.',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   )
@@ -59,8 +64,8 @@ class _RentLeisureScreenState extends State<RentLeisureScreen> {
                       separatorBuilder: (_, __) => const SizedBox(height: 12),
                       itemBuilder: (context, i) {
                         final rental = _rentals[i];
-                        final bike = _bikesById[rental.bikeId];
-                        if (bike == null) return const SizedBox.shrink();
+                        final vehicle = _vehiclesById[rental.vehicleId];
+                        if (vehicle == null) return const SizedBox.shrink();
                         final overdue = rental.isOverdue;
                         final statusColor =
                             overdue ? AppColors.danger : AppColors.success;
@@ -72,7 +77,7 @@ class _RentLeisureScreenState extends State<RentLeisureScreen> {
                               MaterialPageRoute(
                                 builder: (_) => RentalDetailScreen(
                                   rental: rental,
-                                  bike: bike,
+                                  vehicle: vehicle,
                                 ),
                               ),
                             );
@@ -102,7 +107,7 @@ class _RentLeisureScreenState extends State<RentLeisureScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        '${bike.number} · ${bike.colour}',
+                                        '${vehicle.number} · ${vehicle.colour}',
                                         style: Theme.of(context)
                                             .textTheme
                                             .titleLarge

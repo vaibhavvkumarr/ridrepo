@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../db/database_helper.dart';
+import '../settings/vehicle_visibility_controller.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_controller.dart';
 import 'about_screen.dart';
@@ -14,6 +15,7 @@ import 'help_support_screen.dart';
 import 'notepad_screen.dart';
 import 'onboarding_screen.dart';
 import 'staff_screen.dart';
+import 'vehicle_visibility_screen.dart';
 
 // Update this once the app is live on the Play Store.
 const _playStoreDemoLink =
@@ -159,6 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     await ThemeController.instance.setDarkMode(false);
+    await VehicleVisibilityController.instance.load();
 
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
@@ -200,6 +203,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             isDark: isDark,
                             onChanged: (value) =>
                                 ThemeController.instance.setDarkMode(value),
+                          ),
+                          _MenuTile(
+                            icon: Icons.category_outlined,
+                            label: 'Vehicle Types',
+                            subtitle: 'Choose what shows on your home screen',
+                            onTap: () =>
+                                _goTo(const VehicleVisibilityScreen()),
                           ),
                           _MenuTile(
                             icon: Icons.badge_outlined,

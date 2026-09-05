@@ -4,16 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../db/database_helper.dart';
-import '../models/bike.dart';
 import '../models/rental.dart';
+import '../models/vehicle.dart';
+import '../models/vehicle_type.dart';
 import '../theme/app_theme.dart';
 
 class RentalDetailScreen extends StatefulWidget {
   final Rental rental;
-  final Bike bike;
+  final Vehicle vehicle;
 
   const RentalDetailScreen(
-      {super.key, required this.rental, required this.bike});
+      {super.key, required this.rental, required this.vehicle});
 
   @override
   State<RentalDetailScreen> createState() => _RentalDetailScreenState();
@@ -39,7 +40,7 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('End trip?'),
         content: Text(
-          'Mark ${widget.bike.model} (${widget.bike.number}) as returned by ${widget.rental.customerName}?\n\n'
+          'Mark ${widget.vehicle.model} (${widget.vehicle.number}) as returned by ${widget.rental.customerName}?\n\n'
           'Planned duration: ${_formatDuration(widget.rental.endDateTime.difference(widget.rental.startDateTime))}\n'
           'Total duration now: ${_formatDuration(DateTime.now().difference(widget.rental.startDateTime))}',
         ),
@@ -65,7 +66,7 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
     await DatabaseHelper.instance
         .completeRental(widget.rental.id!, DateTime.now(), rating: rating);
     await DatabaseHelper.instance
-        .updateBikeStatus(widget.bike.id!, 'available');
+        .updateVehicleStatus(widget.vehicle.id!, 'available');
     if (!mounted) return;
     Navigator.of(context).pop(true);
   }
@@ -122,7 +123,7 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final rental = widget.rental;
-    final bike = widget.bike;
+    final vehicle = widget.vehicle;
     final dateFormat = DateFormat('d MMM yyyy, h:mm a');
     final overdue = rental.isOverdue;
 
@@ -140,16 +141,15 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.two_wheeler_rounded,
-                      color: AppColors.primaryRed),
+                  Icon(vehicle.type.icon, color: AppColors.primaryRed),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(bike.model,
+                        Text(vehicle.model,
                             style: Theme.of(context).textTheme.titleLarge),
-                        Text('${bike.number} · ${bike.colour}',
+                        Text('${vehicle.number} · ${vehicle.colour}',
                             style: Theme.of(context).textTheme.bodyMedium),
                       ],
                     ),
@@ -254,8 +254,8 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
               children: [
                 Expanded(
                   child: _PhotoView(
-                    label: 'Person with bike',
-                    path: rental.personWithBikePhotoPath,
+                    label: 'Person with ${vehicle.type.label.toLowerCase()}',
+                    path: rental.personWithVehiclePhotoPath,
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -280,7 +280,8 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
                           strokeWidth: 2.4,
                         ),
                       )
-                    : const Text('End trip & receive bike'),
+                    : Text(
+                        'End trip & receive ${vehicle.type.label.toLowerCase()}'),
               ),
             ],
           ],

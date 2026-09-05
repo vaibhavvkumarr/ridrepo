@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/onboarding_screen.dart';
+import 'settings/vehicle_visibility_controller.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ThemeController.instance.load();
+  await VehicleVisibilityController.instance.load();
   runApp(const RidrApp());
 }
 
@@ -20,7 +22,7 @@ class RidrApp extends StatelessWidget {
       valueListenable: ThemeController.instance.isDarkMode,
       builder: (context, isDark, _) {
         return MaterialApp(
-          title: 'Ridr - Bike Rental Manager',
+          title: 'Ridr - Vehicle Rental Manager',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light,
           home: const _LaunchGate(),

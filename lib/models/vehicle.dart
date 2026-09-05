@@ -1,13 +1,17 @@
-class Bike {
+import 'vehicle_type.dart';
+
+class Vehicle {
   final int? id;
+  final VehicleType type;
   final String model;
   final String number;
   final String colour;
   final String status; // 'available' or 'rented'
   final DateTime createdAt;
 
-  Bike({
+  Vehicle({
     this.id,
+    required this.type,
     required this.model,
     required this.number,
     required this.colour,
@@ -15,16 +19,18 @@ class Bike {
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
-  Bike copyWith({
+  Vehicle copyWith({
     int? id,
+    VehicleType? type,
     String? model,
     String? number,
     String? colour,
     String? status,
     DateTime? createdAt,
   }) {
-    return Bike(
+    return Vehicle(
       id: id ?? this.id,
+      type: type ?? this.type,
       model: model ?? this.model,
       number: number ?? this.number,
       colour: colour ?? this.colour,
@@ -36,6 +42,7 @@ class Bike {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'type': type.name,
       'model': model,
       'number': number,
       'colour': colour,
@@ -44,9 +51,10 @@ class Bike {
     };
   }
 
-  factory Bike.fromMap(Map<String, dynamic> map) {
-    return Bike(
+  factory Vehicle.fromMap(Map<String, dynamic> map) {
+    return Vehicle(
       id: map['id'] as int?,
+      type: VehicleTypeX.fromKey(map['type'] as String),
       model: map['model'] as String,
       number: map['number'] as String,
       colour: map['colour'] as String,

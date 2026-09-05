@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../db/database_helper.dart';
-import '../models/bike.dart';
+import '../models/vehicle.dart';
+import '../models/vehicle_type.dart';
 import '../theme/app_theme.dart';
 
-class AllBikesScreen extends StatefulWidget {
-  const AllBikesScreen({super.key});
+class AllVehiclesScreen extends StatefulWidget {
+  final VehicleType type;
+  const AllVehiclesScreen({super.key, required this.type});
 
   @override
-  State<AllBikesScreen> createState() => _AllBikesScreenState();
+  State<AllVehiclesScreen> createState() => _AllVehiclesScreenState();
 }
 
-class _AllBikesScreenState extends State<AllBikesScreen> {
-  List<Bike> _bikes = [];
+class _AllVehiclesScreenState extends State<AllVehiclesScreen> {
+  List<Vehicle> _vehicles = [];
   bool _loading = true;
 
   @override
@@ -22,19 +24,22 @@ class _AllBikesScreenState extends State<AllBikesScreen> {
   }
 
   Future<void> _load() async {
-    final bikes = await DatabaseHelper.instance.getAllBikes();
+    final vehicles =
+        await DatabaseHelper.instance.getAllVehicles(type: widget.type);
     if (!mounted) return;
     setState(() {
-      _bikes = bikes;
+      _vehicles = vehicles;
       _loading = false;
     });
   }
 
-  Future<void> _confirmDelete(Bike bike) async {
-    if (bike.status == 'rented') {
+  Future<void> _confirmDelete(Vehicle vehicle) async {
+    final label = widget.type.label.toLowerCase();
+    if (vehicle.status == 'rented') {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('This bike is currently rented and can\'t be deleted.'),
+        SnackBar(
+          content:
+              Text('This $label is currently rented and can\'t be deleted.'),
         ),
       );
       return;
@@ -42,9 +47,9 @@ class _AllBikesScreenState extends State<AllBikesScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete bike?'),
+        title: Text('Delete $label?'),
         content: Text(
-          'Remove ${bike.model} (${bike.number}) from your fleet? This can\'t be undone.',
+          'Remove ${vehicle.model} (${vehicle.number}) from your fleet? This can\'t be undone.',
         ),
         actions: [
           TextButton(
@@ -53,13 +58,14 @@ class _AllBikesScreenState extends State<AllBikesScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.danger)),
+            child: const Text('Delete',
+                style: TextStyle(color: AppColors.danger)),
           ),
         ],
       ),
     );
     if (confirmed == true) {
-      await DatabaseHelper.instance.deleteBike(bike.id!);
+      await DatabaseHelper.instance.deleteVehicle(vehicle.id!);
       _load();
     }
   }
@@ -67,24 +73,24 @@ class _AllBikesScreenState extends State<AllBikesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('All Bikes')),
+      appBar: AppBar(title: Text('All ${widget.type.pluralLabel}')),
       body: SafeArea(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
-            : _bikes.isEmpty
+            : _vehicles.isEmpty
                 ? Center(
                     child: Text(
-                      'No bikes added yet.',
+                      'No ${widget.type.pluralLabel.toLowerCase()} added yet.',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   )
                 : ListView.separated(
                     padding: const EdgeInsets.all(20),
-                    itemCount: _bikes.length,
+                    itemCount: _vehicles.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemBuilder: (context, i) {
-                      final bike = _bikes[i];
-                      final isRented = bike.status == 'rented';
+                      final vehicle = _vehicles[i];
+                      final isRented = vehicle.status == 'rented';
                       return Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -100,7 +106,7 @@ class _AllBikesScreenState extends State<AllBikesScreen> {
                                 color: AppColors.cardMuted,
                                 borderRadius: BorderRadius.circular(14),
                               ),
-                              child: const Icon(Icons.two_wheeler_rounded,
+                              child: Icon(widget.type.icon,
                                   color: AppColors.primaryRed),
                             ),
                             const SizedBox(width: 14),
@@ -108,15 +114,16 @@ class _AllBikesScreenState extends State<AllBikesScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(bike.model,
+                                  Text(vehicle.model,
                                       style: Theme.of(context)
                                           .textTheme
                                           .titleLarge
                                           ?.copyWith(fontSize: 15.5)),
                                   const SizedBox(height: 2),
                                   Text(
-                                    '${bike.number} · ${bike.colour}',
-                                    style: Theme.of(context).textTheme.bodyMedium,
+                                    '${vehicle.number} · ${vehicle.colour}',
+                                    style:
+                                        Theme.of(context).textTheme.bodyMedium,
                                   ),
                                 ],
                               ),
@@ -127,7 +134,8 @@ class _AllBikesScreenState extends State<AllBikesScreen> {
                               decoration: BoxDecoration(
                                 color: isRented
                                     ? AppColors.danger.withValues(alpha: 0.12)
-                                    : AppColors.success.withValues(alpha: 0.12),
+                                    : AppColors.success
+                                        .withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
@@ -144,7 +152,7 @@ class _AllBikesScreenState extends State<AllBikesScreen> {
                             IconButton(
                               icon: Icon(Icons.delete_outline_rounded,
                                   color: AppColors.textSecondary),
-                              onPressed: () => _confirmDelete(bike),
+                              onPressed: () => _confirmDelete(vehicle),
                             ),
                           ],
                         ),

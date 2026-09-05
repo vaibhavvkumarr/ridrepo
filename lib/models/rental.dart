@@ -1,6 +1,9 @@
+import 'vehicle_type.dart';
+
 class Rental {
   final int? id;
-  final int bikeId;
+  final int vehicleId;
+  final VehicleType vehicleType;
   final int? customerId;
 
   // Customer details
@@ -8,7 +11,7 @@ class Rental {
   final int age;
   final String contactNumber;
   final String aadharNumber;
-  final String personWithBikePhotoPath;
+  final String personWithVehiclePhotoPath;
   final String licensePhotoPath;
 
   // Trip window
@@ -26,13 +29,14 @@ class Rental {
 
   Rental({
     this.id,
-    required this.bikeId,
+    required this.vehicleId,
+    required this.vehicleType,
     this.customerId,
     required this.customerName,
     required this.age,
     required this.contactNumber,
     required this.aadharNumber,
-    required this.personWithBikePhotoPath,
+    required this.personWithVehiclePhotoPath,
     required this.licensePhotoPath,
     required this.startDateTime,
     required this.endDateTime,
@@ -54,13 +58,14 @@ class Rental {
   }) {
     return Rental(
       id: id,
-      bikeId: bikeId,
+      vehicleId: vehicleId,
+      vehicleType: vehicleType,
       customerId: customerId ?? this.customerId,
       customerName: customerName,
       age: age,
       contactNumber: contactNumber,
       aadharNumber: aadharNumber,
-      personWithBikePhotoPath: personWithBikePhotoPath,
+      personWithVehiclePhotoPath: personWithVehiclePhotoPath,
       licensePhotoPath: licensePhotoPath,
       startDateTime: startDateTime,
       endDateTime: endDateTime,
@@ -75,13 +80,14 @@ class Rental {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'bikeId': bikeId,
+      'vehicleId': vehicleId,
+      'vehicleType': vehicleType.name,
       'customerId': customerId,
       'customerName': customerName,
       'age': age,
       'contactNumber': contactNumber,
       'aadharNumber': aadharNumber,
-      'personWithBikePhotoPath': personWithBikePhotoPath,
+      'personWithVehiclePhotoPath': personWithVehiclePhotoPath,
       'licensePhotoPath': licensePhotoPath,
       'startDateTime': startDateTime.toIso8601String(),
       'endDateTime': endDateTime.toIso8601String(),
@@ -96,13 +102,14 @@ class Rental {
   factory Rental.fromMap(Map<String, dynamic> map) {
     return Rental(
       id: map['id'] as int?,
-      bikeId: map['bikeId'] as int,
+      vehicleId: map['vehicleId'] as int,
+      vehicleType: VehicleTypeX.fromKey(map['vehicleType'] as String),
       customerId: map['customerId'] as int?,
       customerName: map['customerName'] as String,
       age: map['age'] as int,
       contactNumber: map['contactNumber'] as String,
       aadharNumber: map['aadharNumber'] as String,
-      personWithBikePhotoPath: map['personWithBikePhotoPath'] as String,
+      personWithVehiclePhotoPath: map['personWithVehiclePhotoPath'] as String,
       licensePhotoPath: map['licensePhotoPath'] as String,
       startDateTime: DateTime.parse(map['startDateTime'] as String),
       endDateTime: DateTime.parse(map['endDateTime'] as String),

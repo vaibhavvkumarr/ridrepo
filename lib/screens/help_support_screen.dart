@@ -10,20 +10,20 @@ class HelpSupportScreen extends StatelessWidget {
 
   static const _faqs = <(String, String)>[
     (
-      'How do I rent out a bike?',
-      'Go to "Rent Bike" on the home screen, fill in the customer\'s details, add the verification photos, set the trip window and charges, then save the trip.',
+      'How do I rent out a vehicle?',
+      'From the home screen, tap the vehicle type (Bike, Car, Auto, Bus or Truck), then "Rent". Fill in the customer\'s details, add the verification photos, set the trip window and charges, then save the trip.',
     ),
     (
-      'How do I end a trip when the bike is returned?',
-      'Open the trip from "Rent Leisure" or "All Customers", tap "End trip & receive bike", confirm, and rate the customer out of 5.',
+      'How do I end a trip when the vehicle is returned?',
+      'Open the trip from "On Rent" or "All Customers" inside that vehicle type\'s dashboard, tap "End trip & receive", confirm, and rate the customer out of 5.',
     ),
     (
-      'Where can I see all my bikes and their status?',
-      'The "All Bikes" section lists every bike you\'ve added along with whether it\'s available or currently rented.',
+      'Where can I see all my vehicles and their status?',
+      'Open a vehicle type\'s dashboard and tap "All Bikes/Cars/Autos/Buses/Trucks" — it lists every one you\'ve added along with whether it\'s available or currently rented.',
     ),
     (
       'How is revenue calculated?',
-      'The "Revenue" section totals the rent charges from your completed and active trips over the period you select.',
+      'Each vehicle type\'s "Revenue" section totals the rent charges from its completed and active trips.',
     ),
     (
       'Can I track my staff and reminders?',

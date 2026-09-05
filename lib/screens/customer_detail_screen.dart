@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../db/database_helper.dart';
-import '../models/bike.dart';
 import '../models/customer.dart';
 import '../models/rental.dart';
+import '../models/vehicle.dart';
 import '../theme/app_theme.dart';
 import 'rental_detail_screen.dart';
 
@@ -23,7 +23,7 @@ class CustomerDetailScreen extends StatefulWidget {
 }
 
 class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
-  Map<int, Bike> _bikesById = {};
+  Map<int, Vehicle> _vehiclesById = {};
   bool _loading = true;
 
   @override
@@ -33,10 +33,10 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
   }
 
   Future<void> _load() async {
-    final bikes = await DatabaseHelper.instance.getAllBikes();
+    final vehicles = await DatabaseHelper.instance.getAllVehicles();
     if (!mounted) return;
     setState(() {
-      _bikesById = {for (final b in bikes) b.id!: b};
+      _vehiclesById = {for (final v in vehicles) v.id!: v};
       _loading = false;
     });
   }
@@ -123,15 +123,15 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                   for (final rental in rentals) ...[
                     _RentalHistoryTile(
                       rental: rental,
-                      bike: _bikesById[rental.bikeId],
+                      vehicle: _vehiclesById[rental.vehicleId],
                       dateFormat: dateFormat,
-                      onTap: _bikesById[rental.bikeId] == null
+                      onTap: _vehiclesById[rental.vehicleId] == null
                           ? null
                           : () => Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (_) => RentalDetailScreen(
                                     rental: rental,
-                                    bike: _bikesById[rental.bikeId]!,
+                                    vehicle: _vehiclesById[rental.vehicleId]!,
                                   ),
                                 ),
                               ),
@@ -147,13 +147,13 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
 
 class _RentalHistoryTile extends StatelessWidget {
   final Rental rental;
-  final Bike? bike;
+  final Vehicle? vehicle;
   final DateFormat dateFormat;
   final VoidCallback? onTap;
 
   const _RentalHistoryTile({
     required this.rental,
-    required this.bike,
+    required this.vehicle,
     required this.dateFormat,
     required this.onTap,
   });
@@ -177,7 +177,9 @@ class _RentalHistoryTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    bike != null ? '${bike!.model} · ${bike!.number}' : 'Unknown bike',
+                    vehicle != null
+                        ? '${vehicle!.model} · ${vehicle!.number}'
+                        : 'Unknown vehicle',
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 2),

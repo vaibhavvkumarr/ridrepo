@@ -1,11 +1,12 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-import '../models/bike.dart';
 import '../models/customer.dart';
 import '../models/note.dart';
 import '../models/rental.dart';
 import '../models/staff.dart';
+import '../models/vehicle.dart';
+import '../models/vehicle_type.dart';
 
 class DatabaseHelper {
   DatabaseHelper._internal();
@@ -24,11 +25,12 @@ class DatabaseHelper {
     final path = join(dbPath, 'ridr.db');
     return openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: (db, version) async {
         await db.execute('''
-          CREATE TABLE bikes (
+          CREATE TABLE vehicles (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            type TEXT NOT NULL DEFAULT 'bike',
             model TEXT NOT NULL,
             number TEXT NOT NULL,
             colour TEXT NOT NULL,
@@ -49,13 +51,14 @@ class DatabaseHelper {
         await db.execute('''
           CREATE TABLE rentals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            bikeId INTEGER NOT NULL,
+            vehicleId INTEGER NOT NULL,
+            vehicleType TEXT NOT NULL DEFAULT 'bike',
             customerId INTEGER,
             customerName TEXT NOT NULL,
             age INTEGER NOT NULL,
             contactNumber TEXT NOT NULL,
             aadharNumber TEXT NOT NULL,
-            personWithBikePhotoPath TEXT NOT NULL,
+            personWithVehiclePhotoPath TEXT NOT NULL,
             licensePhotoPath TEXT NOT NULL,
             startDateTime TEXT NOT NULL,
             endDateTime TEXT NOT NULL,
@@ -65,7 +68,7 @@ class DatabaseHelper {
             actualReturnDateTime TEXT,
             paymentMethod TEXT,
             rating INTEGER,
-            FOREIGN KEY (bikeId) REFERENCES bikes (id),
+            FOREIGN KEY (vehicleId) REFERENCES vehicles (id),
             FOREIGN KEY (customerId) REFERENCES customers (id)
           )
         ''');
@@ -159,6 +162,68 @@ class DatabaseHelper {
             )
           ''');
         }
+        if (oldVersion < 5) {
+          // The app used to only handle bikes. Every existing bike/rental is
+          // recreated under the generalised vehicle schema, tagged as type
+          // 'bike' so nothing already on file changes meaning.
+          await db.execute('''
+            CREATE TABLE vehicles (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              type TEXT NOT NULL DEFAULT 'bike',
+              model TEXT NOT NULL,
+              number TEXT NOT NULL,
+              colour TEXT NOT NULL,
+              status TEXT NOT NULL DEFAULT 'available',
+              createdAt TEXT NOT NULL
+            )
+          ''');
+          await db.execute('''
+            INSERT INTO vehicles (id, type, model, number, colour, status, createdAt)
+            SELECT id, 'bike', model, number, colour, status, createdAt FROM bikes
+          ''');
+          await db.execute('DROP TABLE bikes');
+
+          await db.execute('''
+            CREATE TABLE rentals_new (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              vehicleId INTEGER NOT NULL,
+              vehicleType TEXT NOT NULL DEFAULT 'bike',
+              customerId INTEGER,
+              customerName TEXT NOT NULL,
+              age INTEGER NOT NULL,
+              contactNumber TEXT NOT NULL,
+              aadharNumber TEXT NOT NULL,
+              personWithVehiclePhotoPath TEXT NOT NULL,
+              licensePhotoPath TEXT NOT NULL,
+              startDateTime TEXT NOT NULL,
+              endDateTime TEXT NOT NULL,
+              rentCharge REAL NOT NULL,
+              deposit REAL NOT NULL,
+              status TEXT NOT NULL DEFAULT 'active',
+              actualReturnDateTime TEXT,
+              paymentMethod TEXT,
+              rating INTEGER,
+              FOREIGN KEY (vehicleId) REFERENCES vehicles (id),
+              FOREIGN KEY (customerId) REFERENCES customers (id)
+            )
+          ''');
+          await db.execute('''
+            INSERT INTO rentals_new (
+              id, vehicleId, vehicleType, customerId, customerName, age,
+              contactNumber, aadharNumber, personWithVehiclePhotoPath,
+              licensePhotoPath, startDateTime, endDateTime, rentCharge,
+              deposit, status, actualReturnDateTime, paymentMethod, rating
+            )
+            SELECT
+              id, bikeId, 'bike', customerId, customerName, age,
+              contactNumber, aadharNumber, personWithBikePhotoPath,
+              licensePhotoPath, startDateTime, endDateTime, rentCharge,
+              deposit, status, actualReturnDateTime, paymentMethod, rating
+            FROM rentals
+          ''');
+          await db.execute('DROP TABLE rentals');
+          await db.execute('ALTER TABLE rentals_new RENAME TO rentals');
+        }
       },
     );
   }
@@ -173,43 +238,48 @@ class DatabaseHelper {
     _db = null;
   }
 
-  // ---------- Bikes ----------
+  // ---------- Vehicles ----------
 
-  Future<int> insertBike(Bike bike) async {
+  Future<int> insertVehicle(Vehicle vehicle) async {
     final db = await database;
-    return db.insert('bikes', bike.toMap()..remove('id'));
+    return db.insert('vehicles', vehicle.toMap()..remove('id'));
   }
 
-  Future<List<Bike>> getAllBikes() async {
-    final db = await database;
-    final rows = await db.query('bikes', orderBy: 'createdAt DESC');
-    return rows.map((r) => Bike.fromMap(r)).toList();
-  }
-
-  Future<List<Bike>> getAvailableBikes() async {
+  Future<List<Vehicle>> getAllVehicles({VehicleType? type}) async {
     final db = await database;
     final rows = await db.query(
-      'bikes',
-      where: 'status = ?',
-      whereArgs: ['available'],
+      'vehicles',
+      where: type != null ? 'type = ?' : null,
+      whereArgs: type != null ? [type.name] : null,
+      orderBy: 'createdAt DESC',
+    );
+    return rows.map((r) => Vehicle.fromMap(r)).toList();
+  }
+
+  Future<List<Vehicle>> getAvailableVehicles(VehicleType type) async {
+    final db = await database;
+    final rows = await db.query(
+      'vehicles',
+      where: 'status = ? AND type = ?',
+      whereArgs: ['available', type.name],
       orderBy: 'model ASC',
     );
-    return rows.map((r) => Bike.fromMap(r)).toList();
+    return rows.map((r) => Vehicle.fromMap(r)).toList();
   }
 
-  Future<int> updateBikeStatus(int bikeId, String status) async {
+  Future<int> updateVehicleStatus(int vehicleId, String status) async {
     final db = await database;
     return db.update(
-      'bikes',
+      'vehicles',
       {'status': status},
       where: 'id = ?',
-      whereArgs: [bikeId],
+      whereArgs: [vehicleId],
     );
   }
 
-  Future<int> deleteBike(int bikeId) async {
+  Future<int> deleteVehicle(int vehicleId) async {
     final db = await database;
-    return db.delete('bikes', where: 'id = ?', whereArgs: [bikeId]);
+    return db.delete('vehicles', where: 'id = ?', whereArgs: [vehicleId]);
   }
 
   // ---------- Customers ----------
@@ -265,20 +335,25 @@ class DatabaseHelper {
     return db.insert('rentals', rental.toMap()..remove('id'));
   }
 
-  Future<List<Rental>> getActiveRentals() async {
+  Future<List<Rental>> getActiveRentals({VehicleType? type}) async {
     final db = await database;
     final rows = await db.query(
       'rentals',
-      where: 'status = ?',
-      whereArgs: ['active'],
+      where: type != null ? 'status = ? AND vehicleType = ?' : 'status = ?',
+      whereArgs: type != null ? ['active', type.name] : ['active'],
       orderBy: 'endDateTime ASC',
     );
     return rows.map((r) => Rental.fromMap(r)).toList();
   }
 
-  Future<List<Rental>> getAllRentals() async {
+  Future<List<Rental>> getAllRentals({VehicleType? type}) async {
     final db = await database;
-    final rows = await db.query('rentals', orderBy: 'startDateTime DESC');
+    final rows = await db.query(
+      'rentals',
+      where: type != null ? 'vehicleType = ?' : null,
+      whereArgs: type != null ? [type.name] : null,
+      orderBy: 'startDateTime DESC',
+    );
     return rows.map((r) => Rental.fromMap(r)).toList();
   }
 

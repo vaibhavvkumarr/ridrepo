@@ -6,13 +6,14 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../db/database_helper.dart';
-import '../models/bike.dart';
 import '../models/rental.dart';
+import '../models/vehicle.dart';
+import '../models/vehicle_type.dart';
 import '../theme/app_theme.dart';
 
 class RentalFormScreen extends StatefulWidget {
-  final Bike bike;
-  const RentalFormScreen({super.key, required this.bike});
+  final Vehicle vehicle;
+  const RentalFormScreen({super.key, required this.vehicle});
 
   @override
   State<RentalFormScreen> createState() => _RentalFormScreenState();
@@ -27,7 +28,7 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
   final _chargeController = TextEditingController();
   final _depositController = TextEditingController();
 
-  File? _personBikePhoto;
+  File? _personVehiclePhoto;
   File? _licensePhoto;
 
   DateTime _startDateTime = DateTime.now();
@@ -82,7 +83,7 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
 
     setState(() {
       if (isPersonPhoto) {
-        _personBikePhoto = saved;
+        _personVehiclePhoto = saved;
       } else {
         _licensePhoto = saved;
       }
@@ -117,8 +118,9 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
 
   Future<void> _saveTrip() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_personBikePhoto == null) {
-      _showError('Please add a photo of the person with the bike.');
+    if (_personVehiclePhoto == null) {
+      _showError(
+          'Please add a photo of the person with the ${widget.vehicle.type.label.toLowerCase()}.');
       return;
     }
     if (_licensePhoto == null) {
@@ -145,13 +147,14 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
     );
 
     final rental = Rental(
-      bikeId: widget.bike.id!,
+      vehicleId: widget.vehicle.id!,
+      vehicleType: widget.vehicle.type,
       customerId: customerId,
       customerName: name,
       age: age,
       contactNumber: contact,
       aadharNumber: aadhar,
-      personWithBikePhotoPath: _personBikePhoto!.path,
+      personWithVehiclePhotoPath: _personVehiclePhoto!.path,
       licensePhotoPath: _licensePhoto!.path,
       startDateTime: _startDateTime,
       endDateTime: _endDateTime,
@@ -162,7 +165,8 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
     );
 
     await DatabaseHelper.instance.insertRental(rental);
-    await DatabaseHelper.instance.updateBikeStatus(widget.bike.id!, 'rented');
+    await DatabaseHelper.instance
+        .updateVehicleStatus(widget.vehicle.id!, 'rented');
 
     if (!mounted) return;
     Navigator.of(context).pop();
@@ -187,8 +191,9 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('d MMM, h:mm a');
+    final type = widget.vehicle.type;
     return Scaffold(
-      appBar: AppBar(title: const Text('Rent Bike')),
+      appBar: AppBar(title: Text('Rent ${type.label}')),
       body: SafeArea(
         child: Form(
           key: _formKey,
@@ -203,12 +208,11 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.two_wheeler_rounded,
-                        color: AppColors.primaryRed),
+                    Icon(type.icon, color: AppColors.primaryRed),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        '${widget.bike.model} · ${widget.bike.number} · ${widget.bike.colour}',
+                        '${widget.vehicle.model} · ${widget.vehicle.number} · ${widget.vehicle.colour}',
                         style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
                     ),
@@ -274,8 +278,8 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
                 children: [
                   Expanded(
                     child: _PhotoPickerTile(
-                      label: 'Person with bike',
-                      file: _personBikePhoto,
+                      label: 'Person with ${type.label.toLowerCase()}',
+                      file: _personVehiclePhoto,
                       onTap: () => _pickImage(true),
                     ),
                   ),

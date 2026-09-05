@@ -69,7 +69,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Let\'s set up your shop before you start renting bikes.',
+                  'Let\'s set up your shop before you start renting vehicles.',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 36),
@@ -90,7 +90,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   textCapitalization: TextCapitalization.words,
                   decoration: const InputDecoration(
                     labelText: 'Shop name',
-                    hintText: 'e.g. Beach Bike Rentals',
+                    hintText: 'e.g. Beach Vehicle Rentals',
                   ),
                   validator: (v) => (v == null || v.trim().isEmpty)
                       ? 'Please enter your shop name'

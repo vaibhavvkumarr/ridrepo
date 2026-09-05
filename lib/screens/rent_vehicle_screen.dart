@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 
 import '../db/database_helper.dart';
-import '../models/bike.dart';
+import '../models/vehicle.dart';
+import '../models/vehicle_type.dart';
 import '../theme/app_theme.dart';
 import 'rental_form_screen.dart';
 
-class RentBikeScreen extends StatefulWidget {
-  const RentBikeScreen({super.key});
+class RentVehicleScreen extends StatefulWidget {
+  final VehicleType type;
+  const RentVehicleScreen({super.key, required this.type});
 
   @override
-  State<RentBikeScreen> createState() => _RentBikeScreenState();
+  State<RentVehicleScreen> createState() => _RentVehicleScreenState();
 }
 
-class _RentBikeScreenState extends State<RentBikeScreen> {
-  List<Bike> _bikes = [];
+class _RentVehicleScreenState extends State<RentVehicleScreen> {
+  List<Vehicle> _vehicles = [];
   bool _loading = true;
 
   @override
@@ -23,27 +25,30 @@ class _RentBikeScreenState extends State<RentBikeScreen> {
   }
 
   Future<void> _load() async {
-    final bikes = await DatabaseHelper.instance.getAvailableBikes();
+    final vehicles =
+        await DatabaseHelper.instance.getAvailableVehicles(widget.type);
     if (!mounted) return;
     setState(() {
-      _bikes = bikes;
+      _vehicles = vehicles;
       _loading = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final label = widget.type.label;
+    final pluralLower = widget.type.pluralLabel.toLowerCase();
     return Scaffold(
-      appBar: AppBar(title: const Text('Select Bike')),
+      appBar: AppBar(title: Text('Select $label')),
       body: SafeArea(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
-            : _bikes.isEmpty
+            : _vehicles.isEmpty
                 ? Padding(
                     padding: const EdgeInsets.all(24),
                     child: Center(
                       child: Text(
-                        'No bikes available right now. Add a bike or wait for one to be returned.',
+                        'No $pluralLower available right now. Add a $label or wait for one to be returned.',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
@@ -51,16 +56,17 @@ class _RentBikeScreenState extends State<RentBikeScreen> {
                   )
                 : ListView.separated(
                     padding: const EdgeInsets.all(20),
-                    itemCount: _bikes.length,
+                    itemCount: _vehicles.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemBuilder: (context, i) {
-                      final bike = _bikes[i];
+                      final vehicle = _vehicles[i];
                       return InkWell(
                         borderRadius: BorderRadius.circular(18),
                         onTap: () async {
                           await Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => RentalFormScreen(bike: bike),
+                              builder: (_) =>
+                                  RentalFormScreen(vehicle: vehicle),
                             ),
                           );
                           _load();
@@ -80,7 +86,7 @@ class _RentBikeScreenState extends State<RentBikeScreen> {
                                   color: AppColors.cardMuted,
                                   borderRadius: BorderRadius.circular(14),
                                 ),
-                                child: const Icon(Icons.two_wheeler_rounded,
+                                child: Icon(widget.type.icon,
                                     color: AppColors.primaryRed),
                               ),
                               const SizedBox(width: 14),
@@ -88,16 +94,17 @@ class _RentBikeScreenState extends State<RentBikeScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(bike.model,
+                                    Text(vehicle.model,
                                         style: Theme.of(context)
                                             .textTheme
                                             .titleLarge
                                             ?.copyWith(fontSize: 15.5)),
                                     const SizedBox(height: 2),
                                     Text(
-                                      '${bike.number} · ${bike.colour}',
-                                      style:
-                                          Theme.of(context).textTheme.bodyMedium,
+                                      '${vehicle.number} · ${vehicle.colour}',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium,
                                     ),
                                   ],
                                 ),

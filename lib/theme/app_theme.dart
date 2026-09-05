@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Central design tokens for Ridr - Bike Rental Manager.
+/// Central design tokens for Ridr - Vehicle Rental Manager.
 /// Clean, minimalist design with bold typography.
 ///
 /// Surface/text tokens switch with [dark] so every screen that reads them
