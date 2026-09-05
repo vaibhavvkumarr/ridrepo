@@ -4,6 +4,7 @@ import '../db/database_helper.dart';
 import '../models/vehicle.dart';
 import '../models/vehicle_type.dart';
 import '../theme/app_theme.dart';
+import '../widgets/vehicle_document_dates.dart';
 
 class AllVehiclesScreen extends StatefulWidget {
   final VehicleType type;
@@ -58,8 +59,8 @@ class _AllVehiclesScreenState extends State<AllVehiclesScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Delete',
-                style: TextStyle(color: AppColors.danger)),
+            child:
+                const Text('Delete', style: TextStyle(color: AppColors.danger)),
           ),
         ],
       ),
@@ -98,61 +99,73 @@ class _AllVehiclesScreenState extends State<AllVehiclesScreen> {
                           borderRadius: BorderRadius.circular(18),
                           border: Border.all(color: AppColors.cardMuted),
                         ),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: AppColors.cardMuted,
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Icon(widget.type.icon,
-                                  color: AppColors.primaryRed),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(vehicle.model,
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.cardMuted,
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: Icon(widget.type.icon,
+                                      color: AppColors.primaryRed),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Text(vehicle.model,
                                       style: Theme.of(context)
                                           .textTheme
                                           .titleLarge
                                           ?.copyWith(fontSize: 15.5)),
-                                  const SizedBox(height: 2),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: isRented
+                                        ? AppColors.danger
+                                            .withValues(alpha: 0.12)
+                                        : AppColors.success
+                                            .withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    isRented ? 'Rented' : 'Available',
+                                    style: TextStyle(
+                                      color: isRented
+                                          ? AppColors.danger
+                                          : AppColors.success,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.delete_outline_rounded,
+                                      color: AppColors.textSecondary),
+                                  onPressed: () => _confirmDelete(vehicle),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 56),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
                                   Text(
-                                    '${vehicle.number} · ${vehicle.colour}',
+                                    'Reg. no. ${vehicle.number}  ·  Colour: ${vehicle.colour}',
                                     style:
                                         Theme.of(context).textTheme.bodyMedium,
                                   ),
+                                  const SizedBox(height: 8),
+                                  VehicleDocumentDates(
+                                      vehicle: vehicle, expanded: true),
                                 ],
                               ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: isRented
-                                    ? AppColors.danger.withValues(alpha: 0.12)
-                                    : AppColors.success
-                                        .withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                isRented ? 'Rented' : 'Available',
-                                style: TextStyle(
-                                  color: isRented
-                                      ? AppColors.danger
-                                      : AppColors.success,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.delete_outline_rounded,
-                                  color: AppColors.textSecondary),
-                              onPressed: () => _confirmDelete(vehicle),
                             ),
                           ],
                         ),

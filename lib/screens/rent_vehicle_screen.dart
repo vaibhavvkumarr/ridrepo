@@ -4,6 +4,7 @@ import '../db/database_helper.dart';
 import '../models/vehicle.dart';
 import '../models/vehicle_type.dart';
 import '../theme/app_theme.dart';
+import '../widgets/vehicle_document_dates.dart';
 import 'rental_form_screen.dart';
 
 class RentVehicleScreen extends StatefulWidget {
@@ -79,6 +80,7 @@ class _RentVehicleScreenState extends State<RentVehicleScreen> {
                             border: Border.all(color: AppColors.cardMuted),
                           ),
                           child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
                                 padding: const EdgeInsets.all(10),
@@ -106,6 +108,9 @@ class _RentVehicleScreenState extends State<RentVehicleScreen> {
                                           .textTheme
                                           .bodyMedium,
                                     ),
+                                    const SizedBox(height: 4),
+                                    VehicleDocumentDates(
+                                        vehicle: vehicle, expanded: true),
                                   ],
                                 ),
                               ),

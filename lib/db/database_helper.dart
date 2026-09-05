@@ -25,7 +25,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'ridr.db');
     return openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE vehicles (
@@ -35,7 +35,9 @@ class DatabaseHelper {
             number TEXT NOT NULL,
             colour TEXT NOT NULL,
             status TEXT NOT NULL DEFAULT 'available',
-            createdAt TEXT NOT NULL
+            createdAt TEXT NOT NULL,
+            insuranceExpiry TEXT,
+            pollutionExpiry TEXT
           )
         ''');
         await db.execute('''
@@ -223,6 +225,12 @@ class DatabaseHelper {
           ''');
           await db.execute('DROP TABLE rentals');
           await db.execute('ALTER TABLE rentals_new RENAME TO rentals');
+        }
+        if (oldVersion < 6) {
+          await db
+              .execute('ALTER TABLE vehicles ADD COLUMN insuranceExpiry TEXT');
+          await db
+              .execute('ALTER TABLE vehicles ADD COLUMN pollutionExpiry TEXT');
         }
       },
     );

@@ -10,6 +10,7 @@ import '../models/vehicle.dart';
 import '../models/vehicle_type.dart';
 import '../settings/currency_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/vehicle_document_dates.dart';
 
 class RentalDetailScreen extends StatefulWidget {
   final Rental rental;
@@ -144,6 +145,7 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(vehicle.type.icon, color: AppColors.primaryRed),
                     const SizedBox(width: 12),
@@ -155,6 +157,8 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
                               style: Theme.of(context).textTheme.titleLarge),
                           Text('${vehicle.number} · ${vehicle.colour}',
                               style: Theme.of(context).textTheme.bodyMedium),
+                          const SizedBox(height: 4),
+                          VehicleDocumentDates(vehicle: vehicle),
                         ],
                       ),
                     ),

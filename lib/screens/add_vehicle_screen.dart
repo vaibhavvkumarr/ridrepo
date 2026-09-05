@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../db/database_helper.dart';
 import '../models/vehicle.dart';
@@ -31,20 +32,50 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   final _modelController = TextEditingController();
   final _numberController = TextEditingController();
   final _colourController = TextEditingController();
+  DateTime? _insuranceExpiry;
+  DateTime? _pollutionExpiry;
   bool _saving = false;
 
   void _pickColour(String name) {
     setState(() => _colourController.text = name);
   }
 
+  Future<void> _pickExpiryDate({required bool isInsurance}) async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
+    );
+    if (date == null) return;
+    setState(() {
+      if (isInsurance) {
+        _insuranceExpiry = date;
+      } else {
+        _pollutionExpiry = date;
+      }
+    });
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_insuranceExpiry == null || _pollutionExpiry == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'Please select both the insurance and pollution expiry dates.'),
+        ),
+      );
+      return;
+    }
     setState(() => _saving = true);
     final vehicle = Vehicle(
       type: widget.type,
       model: _modelController.text.trim(),
       number: _numberController.text.trim().toUpperCase(),
       colour: _colourController.text.trim(),
+      insuranceExpiry: _insuranceExpiry,
+      pollutionExpiry: _pollutionExpiry,
     );
     await DatabaseHelper.instance.insertVehicle(vehicle);
     if (!mounted) return;
@@ -122,6 +153,18 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                 validator: (v) =>
                     (v == null || v.trim().isEmpty) ? 'Enter colour' : null,
               ),
+              const SizedBox(height: 16),
+              _ExpiryDateField(
+                label: 'Insurance expiry date',
+                date: _insuranceExpiry,
+                onTap: () => _pickExpiryDate(isInsurance: true),
+              ),
+              const SizedBox(height: 14),
+              _ExpiryDateField(
+                label: 'Pollution certificate expiry date',
+                date: _pollutionExpiry,
+                onTap: () => _pickExpiryDate(isInsurance: false),
+              ),
               const SizedBox(height: 28),
               ElevatedButton(
                 onPressed: _saving ? null : _save,
@@ -138,6 +181,55 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ExpiryDateField extends StatelessWidget {
+  final String label;
+  final DateTime? date;
+  final VoidCallback onTap;
+
+  const _ExpiryDateField({
+    required this.label,
+    required this.date,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dateFormat = DateFormat('d MMM yyyy');
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.cardMuted),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.event_rounded,
+                color: AppColors.primaryRed, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(label,
+                  style: const TextStyle(fontWeight: FontWeight.w600)),
+            ),
+            Text(
+              date != null ? dateFormat.format(date!) : 'Select date',
+              style: TextStyle(
+                color: date != null
+                    ? AppColors.textPrimary
+                    : AppColors.textSecondary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
         ),
       ),
     );

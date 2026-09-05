@@ -8,6 +8,8 @@ class Vehicle {
   final String colour;
   final String status; // 'available' or 'rented'
   final DateTime createdAt;
+  final DateTime? insuranceExpiry;
+  final DateTime? pollutionExpiry;
 
   Vehicle({
     this.id,
@@ -17,6 +19,8 @@ class Vehicle {
     required this.colour,
     this.status = 'available',
     DateTime? createdAt,
+    this.insuranceExpiry,
+    this.pollutionExpiry,
   }) : createdAt = createdAt ?? DateTime.now();
 
   Vehicle copyWith({
@@ -27,6 +31,8 @@ class Vehicle {
     String? colour,
     String? status,
     DateTime? createdAt,
+    DateTime? insuranceExpiry,
+    DateTime? pollutionExpiry,
   }) {
     return Vehicle(
       id: id ?? this.id,
@@ -36,6 +42,8 @@ class Vehicle {
       colour: colour ?? this.colour,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
+      insuranceExpiry: insuranceExpiry ?? this.insuranceExpiry,
+      pollutionExpiry: pollutionExpiry ?? this.pollutionExpiry,
     );
   }
 
@@ -48,6 +56,8 @@ class Vehicle {
       'colour': colour,
       'status': status,
       'createdAt': createdAt.toIso8601String(),
+      'insuranceExpiry': insuranceExpiry?.toIso8601String(),
+      'pollutionExpiry': pollutionExpiry?.toIso8601String(),
     };
   }
 
@@ -60,6 +70,12 @@ class Vehicle {
       colour: map['colour'] as String,
       status: map['status'] as String,
       createdAt: DateTime.parse(map['createdAt'] as String),
+      insuranceExpiry: map['insuranceExpiry'] != null
+          ? DateTime.parse(map['insuranceExpiry'] as String)
+          : null,
+      pollutionExpiry: map['pollutionExpiry'] != null
+          ? DateTime.parse(map['pollutionExpiry'] as String)
+          : null,
     );
   }
 }
