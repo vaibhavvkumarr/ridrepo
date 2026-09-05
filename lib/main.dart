@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/onboarding_screen.dart';
+import 'settings/currency_controller.dart';
 import 'settings/vehicle_visibility_controller.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_controller.dart';
@@ -10,6 +11,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await ThemeController.instance.load();
   await VehicleVisibilityController.instance.load();
+  await CurrencyController.instance.load();
   runApp(const RidrApp());
 }
 

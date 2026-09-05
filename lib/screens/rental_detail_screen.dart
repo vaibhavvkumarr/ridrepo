@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../db/database_helper.dart';
+import '../models/app_currency.dart';
 import '../models/rental.dart';
 import '../models/vehicle.dart';
 import '../models/vehicle_type.dart';
+import '../settings/currency_controller.dart';
 import '../theme/app_theme.dart';
 
 class RentalDetailScreen extends StatefulWidget {
@@ -127,164 +129,173 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
     final dateFormat = DateFormat('d MMM yyyy, h:mm a');
     final overdue = rental.isOverdue;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Trip Details')),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.cardMuted,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Row(
-                children: [
-                  Icon(vehicle.type.icon, color: AppColors.primaryRed),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(vehicle.model,
-                            style: Theme.of(context).textTheme.titleLarge),
-                        Text('${vehicle.number} · ${vehicle.colour}',
-                            style: Theme.of(context).textTheme.bodyMedium),
-                      ],
-                    ),
-                  ),
-                  if (rental.status == 'active')
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: overdue
-                            ? AppColors.danger.withValues(alpha: 0.14)
-                            : AppColors.success.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        overdue ? 'Overdue' : 'On time',
-                        style: TextStyle(
-                          color: overdue ? AppColors.danger : AppColors.success,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 22),
-            Text('Customer', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 10),
-            _InfoRow(label: 'Name', value: rental.customerName),
-            _InfoRow(label: 'Age', value: '${rental.age}'),
-            _InfoRow(label: 'Contact', value: rental.contactNumber),
-            _InfoRow(label: 'Govt. ID number', value: rental.aadharNumber),
-            const SizedBox(height: 22),
-            Text('Trip window', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 10),
-            _InfoRow(
-                label: 'Start', value: dateFormat.format(rental.startDateTime)),
-            _InfoRow(
-                label: 'End', value: dateFormat.format(rental.endDateTime)),
-            _InfoRow(
-              label: 'Planned duration',
-              value: _formatDuration(
-                rental.endDateTime.difference(rental.startDateTime),
-              ),
-            ),
-            if (rental.actualReturnDateTime != null) ...[
-              _InfoRow(
-                label: 'Returned',
-                value: dateFormat.format(rental.actualReturnDateTime!),
-              ),
-              _InfoRow(
-                label: 'Actual duration',
-                value: _formatDuration(
-                  rental.actualReturnDateTime!.difference(rental.startDateTime),
+    return ValueListenableBuilder<AppCurrency>(
+      valueListenable: CurrencyController.instance.currency,
+      builder: (context, currency, _) => Scaffold(
+        appBar: AppBar(title: const Text('Trip Details')),
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.cardMuted,
+                  borderRadius: BorderRadius.circular(18),
                 ),
-              ),
-            ],
-            if (rental.rating != null) ...[
-              const SizedBox(height: 6),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
                 child: Row(
                   children: [
+                    Icon(vehicle.type.icon, color: AppColors.primaryRed),
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: Text('Customer rating',
-                          style: TextStyle(color: AppColors.textSecondary)),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(vehicle.model,
+                              style: Theme.of(context).textTheme.titleLarge),
+                          Text('${vehicle.number} · ${vehicle.colour}',
+                              style: Theme.of(context).textTheme.bodyMedium),
+                        ],
+                      ),
                     ),
-                    Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: List.generate(
-                          5,
-                          (i) => Icon(
-                            i < rental.rating!
-                                ? Icons.star_rounded
-                                : Icons.star_border_rounded,
-                            color: AppColors.primaryRed,
-                            size: 18,
+                    if (rental.status == 'active')
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: overdue
+                              ? AppColors.danger.withValues(alpha: 0.14)
+                              : AppColors.success.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          overdue ? 'Overdue' : 'On time',
+                          style: TextStyle(
+                            color:
+                                overdue ? AppColors.danger : AppColors.success,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
-            ],
-            const SizedBox(height: 22),
-            Text('Charges', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 10),
-            _InfoRow(
-                label: 'Rent charge',
-                value: '₹${rental.rentCharge.toStringAsFixed(0)}'),
-            _InfoRow(
-                label: 'Deposit',
-                value: '₹${rental.deposit.toStringAsFixed(0)}'),
-            const SizedBox(height: 22),
-            Text('Verification photos',
-                style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: _PhotoView(
-                    label: 'Person with ${vehicle.type.label.toLowerCase()}',
-                    path: rental.personWithVehiclePhotoPath,
-                  ),
+              const SizedBox(height: 22),
+              Text('Customer', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 10),
+              _InfoRow(label: 'Name', value: rental.customerName),
+              _InfoRow(label: 'Age', value: '${rental.age}'),
+              _InfoRow(label: 'Contact', value: rental.contactNumber),
+              _InfoRow(label: 'Govt. ID number', value: rental.aadharNumber),
+              const SizedBox(height: 22),
+              Text('Trip window',
+                  style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 10),
+              _InfoRow(
+                  label: 'Start',
+                  value: dateFormat.format(rental.startDateTime)),
+              _InfoRow(
+                  label: 'End', value: dateFormat.format(rental.endDateTime)),
+              _InfoRow(
+                label: 'Planned duration',
+                value: _formatDuration(
+                  rental.endDateTime.difference(rental.startDateTime),
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: _PhotoView(
-                    label: 'Driving licence',
-                    path: rental.licensePhotoPath,
+              ),
+              if (rental.actualReturnDateTime != null) ...[
+                _InfoRow(
+                  label: 'Returned',
+                  value: dateFormat.format(rental.actualReturnDateTime!),
+                ),
+                _InfoRow(
+                  label: 'Actual duration',
+                  value: _formatDuration(
+                    rental.actualReturnDateTime!
+                        .difference(rental.startDateTime),
                   ),
                 ),
               ],
-            ),
-            if (rental.status == 'active') ...[
-              const SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: _ending ? null : _endTrip,
-                child: _ending
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2.4,
+              if (rental.rating != null) ...[
+                const SizedBox(height: 6),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text('Customer rating',
+                            style: TextStyle(color: AppColors.textSecondary)),
+                      ),
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: List.generate(
+                            5,
+                            (i) => Icon(
+                              i < rental.rating!
+                                  ? Icons.star_rounded
+                                  : Icons.star_border_rounded,
+                              color: AppColors.primaryRed,
+                              size: 18,
+                            ),
+                          ),
                         ),
-                      )
-                    : Text(
-                        'End trip & receive ${vehicle.type.label.toLowerCase()}'),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 22),
+              Text('Charges', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 10),
+              _InfoRow(
+                  label: 'Rent charge',
+                  value:
+                      '${currency.symbol}${rental.rentCharge.toStringAsFixed(0)}'),
+              _InfoRow(
+                  label: 'Deposit',
+                  value:
+                      '${currency.symbol}${rental.deposit.toStringAsFixed(0)}'),
+              const SizedBox(height: 22),
+              Text('Verification photos',
+                  style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _PhotoView(
+                      label: 'Person with ${vehicle.type.label.toLowerCase()}',
+                      path: rental.personWithVehiclePhotoPath,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: _PhotoView(
+                      label: 'Driving licence',
+                      path: rental.licensePhotoPath,
+                    ),
+                  ),
+                ],
               ),
+              if (rental.status == 'active') ...[
+                const SizedBox(height: 30),
+                ElevatedButton(
+                  onPressed: _ending ? null : _endTrip,
+                  child: _ending
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.4,
+                          ),
+                        )
+                      : Text(
+                          'End trip & receive ${vehicle.type.label.toLowerCase()}'),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -303,8 +314,8 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text(label,
-                style: TextStyle(color: AppColors.textSecondary)),
+            child:
+                Text(label, style: TextStyle(color: AppColors.textSecondary)),
           ),
           Expanded(
             child: Text(
@@ -358,8 +369,7 @@ class _PhotoView extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(label,
-              style: TextStyle(
-                  fontSize: 12.5, color: AppColors.textSecondary)),
+              style: TextStyle(fontSize: 12.5, color: AppColors.textSecondary)),
         ],
       ),
     );

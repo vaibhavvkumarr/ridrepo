@@ -6,9 +6,11 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../db/database_helper.dart';
+import '../models/app_currency.dart';
 import '../models/rental.dart';
 import '../models/vehicle.dart';
 import '../models/vehicle_type.dart';
+import '../settings/currency_controller.dart';
 import '../theme/app_theme.dart';
 
 class RentalFormScreen extends StatefulWidget {
@@ -192,202 +194,209 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('d MMM, h:mm a');
     final type = widget.vehicle.type;
-    return Scaffold(
-      appBar: AppBar(title: Text('Rent ${type.label}')),
-      body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppColors.cardMuted,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    Icon(type.icon, color: AppColors.primaryRed),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        '${widget.vehicle.model} · ${widget.vehicle.number} · ${widget.vehicle.colour}',
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 22),
-              Text('Customer details',
-                  style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 14),
-              TextFormField(
-                controller: _nameController,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(labelText: 'Full name'),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Enter name' : null,
-              ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _ageController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Age'),
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Enter age';
-                        if (int.tryParse(v.trim()) == null) return 'Invalid';
-                        return null;
-                      },
-                    ),
+    return ValueListenableBuilder<AppCurrency>(
+      valueListenable: CurrencyController.instance.currency,
+      builder: (context, currency, _) => Scaffold(
+        appBar: AppBar(title: Text('Rent ${type.label}')),
+        body: SafeArea(
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardMuted,
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    flex: 2,
-                    child: TextFormField(
-                      controller: _contactController,
-                      keyboardType: TextInputType.phone,
-                      decoration:
-                          const InputDecoration(labelText: 'Contact number'),
-                      validator: (v) => (v == null || v.trim().length < 10)
-                          ? 'Enter valid number'
-                          : null,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              TextFormField(
-                controller: _aadharController,
-                keyboardType: TextInputType.number,
-                decoration:
-                    const InputDecoration(labelText: 'Govt. ID number'),
-                validator: (v) => (v == null || v.trim().length < 4)
-                    ? 'Enter Govt. ID number'
-                    : null,
-              ),
-              const SizedBox(height: 22),
-              Text('Verification photos',
-                  style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: _PhotoPickerTile(
-                      label: 'Person with ${type.label.toLowerCase()}',
-                      file: _personVehiclePhoto,
-                      onTap: () => _pickImage(true),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: _PhotoPickerTile(
-                      label: 'Driving licence',
-                      file: _licensePhoto,
-                      onTap: () => _pickImage(false),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 22),
-              Text('Trip window',
-                  style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 14),
-              _DateTimeTile(
-                label: 'Start',
-                value: dateFormat.format(_startDateTime),
-                onTap: () => _pickDateTime(true),
-              ),
-              const SizedBox(height: 10),
-              _DateTimeTile(
-                label: 'End',
-                value: dateFormat.format(_endDateTime),
-                onTap: () => _pickDateTime(false),
-              ),
-              const SizedBox(height: 10),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-                decoration: BoxDecoration(
-                  color: AppColors.cardMuted,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.schedule_outlined,
-                        color: AppColors.primaryRed),
-                    const SizedBox(width: 10),
-                    const Text('Total duration',
-                        style: TextStyle(fontWeight: FontWeight.w600)),
-                    const Spacer(),
-                    Text(
-                      _endDateTime.isAfter(_startDateTime)
-                          ? _formatDuration(
-                              _endDateTime.difference(_startDateTime))
-                          : 'Select a valid end time',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 22),
-              Text('Charges', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _chargeController,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      decoration:
-                          const InputDecoration(labelText: 'Rent charge (₹)'),
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Required';
-                        if (double.tryParse(v.trim()) == null) return 'Invalid';
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _depositController,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      decoration:
-                          const InputDecoration(labelText: 'Deposit (₹)'),
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) return null;
-                        if (double.tryParse(v.trim()) == null) return 'Invalid';
-                        return null;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: _saving ? null : _saveTrip,
-                child: _saving
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2.4,
+                  child: Row(
+                    children: [
+                      Icon(type.icon, color: AppColors.primaryRed),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          '${widget.vehicle.model} · ${widget.vehicle.number} · ${widget.vehicle.colour}',
+                          style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
-                      )
-                    : const Text('Save trip'),
-              ),
-            ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 22),
+                Text('Customer details',
+                    style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: _nameController,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: const InputDecoration(labelText: 'Full name'),
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Enter name' : null,
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _ageController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'Age'),
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return 'Enter age';
+                          if (int.tryParse(v.trim()) == null) return 'Invalid';
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      flex: 2,
+                      child: TextFormField(
+                        controller: _contactController,
+                        keyboardType: TextInputType.phone,
+                        decoration:
+                            const InputDecoration(labelText: 'Contact number'),
+                        validator: (v) => (v == null || v.trim().length < 10)
+                            ? 'Enter valid number'
+                            : null,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: _aadharController,
+                  keyboardType: TextInputType.number,
+                  decoration:
+                      const InputDecoration(labelText: 'Govt. ID number'),
+                  validator: (v) => (v == null || v.trim().length < 4)
+                      ? 'Enter Govt. ID number'
+                      : null,
+                ),
+                const SizedBox(height: 22),
+                Text('Verification photos',
+                    style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _PhotoPickerTile(
+                        label: 'Person with ${type.label.toLowerCase()}',
+                        file: _personVehiclePhoto,
+                        onTap: () => _pickImage(true),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: _PhotoPickerTile(
+                        label: 'Driving licence',
+                        file: _licensePhoto,
+                        onTap: () => _pickImage(false),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 22),
+                Text('Trip window',
+                    style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 14),
+                _DateTimeTile(
+                  label: 'Start',
+                  value: dateFormat.format(_startDateTime),
+                  onTap: () => _pickDateTime(true),
+                ),
+                const SizedBox(height: 10),
+                _DateTimeTile(
+                  label: 'End',
+                  value: dateFormat.format(_endDateTime),
+                  onTap: () => _pickDateTime(false),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardMuted,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.schedule_outlined,
+                          color: AppColors.primaryRed),
+                      const SizedBox(width: 10),
+                      const Text('Total duration',
+                          style: TextStyle(fontWeight: FontWeight.w600)),
+                      const Spacer(),
+                      Text(
+                        _endDateTime.isAfter(_startDateTime)
+                            ? _formatDuration(
+                                _endDateTime.difference(_startDateTime))
+                            : 'Select a valid end time',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 22),
+                Text('Charges', style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _chargeController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        decoration: InputDecoration(
+                            labelText: 'Rent charge (${currency.symbol})'),
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return 'Required';
+                          if (double.tryParse(v.trim()) == null) {
+                            return 'Invalid';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _depositController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        decoration: InputDecoration(
+                            labelText: 'Deposit (${currency.symbol})'),
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return null;
+                          if (double.tryParse(v.trim()) == null) {
+                            return 'Invalid';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 30),
+                ElevatedButton(
+                  onPressed: _saving ? null : _saveTrip,
+                  child: _saving
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.4,
+                          ),
+                        )
+                      : const Text('Save trip'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

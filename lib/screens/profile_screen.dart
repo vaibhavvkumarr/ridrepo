@@ -7,10 +7,13 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../db/database_helper.dart';
+import '../models/app_currency.dart';
+import '../settings/currency_controller.dart';
 import '../settings/vehicle_visibility_controller.dart';
 import '../theme/app_theme.dart';
 import '../theme/theme_controller.dart';
 import 'about_screen.dart';
+import 'currency_screen.dart';
 import 'help_support_screen.dart';
 import 'notepad_screen.dart';
 import 'onboarding_screen.dart';
@@ -162,6 +165,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     await ThemeController.instance.setDarkMode(false);
     await VehicleVisibilityController.instance.load();
+    await CurrencyController.instance.load();
 
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
@@ -210,6 +214,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             subtitle: 'Choose what shows on your home screen',
                             onTap: () =>
                                 _goTo(const VehicleVisibilityScreen()),
+                          ),
+                          ValueListenableBuilder<AppCurrency>(
+                            valueListenable:
+                                CurrencyController.instance.currency,
+                            builder: (context, currency, _) => _MenuTile(
+                              icon: Icons.currency_exchange_rounded,
+                              label: 'Currency',
+                              subtitle:
+                                  '${currency.currencyName} (${currency.symbol})',
+                              onTap: () => _goTo(const CurrencyScreen()),
+                            ),
                           ),
                           _MenuTile(
                             icon: Icons.badge_outlined,
