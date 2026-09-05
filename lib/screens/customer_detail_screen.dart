@@ -75,7 +75,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                         Text('${customer.contactNumber} · Age ${customer.age}',
                             style: Theme.of(context).textTheme.bodyMedium),
                         const SizedBox(height: 2),
-                        Text('Aadhar: ${customer.aadharNumber}',
+                        Text('Govt. ID: ${customer.aadharNumber}',
                             style: Theme.of(context).textTheme.bodyMedium),
                         const SizedBox(height: 12),
                         Row(

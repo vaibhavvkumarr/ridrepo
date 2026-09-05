@@ -261,9 +261,9 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
                 controller: _aadharController,
                 keyboardType: TextInputType.number,
                 decoration:
-                    const InputDecoration(labelText: 'Aadhar card number'),
+                    const InputDecoration(labelText: 'Govt. ID number'),
                 validator: (v) => (v == null || v.trim().length < 4)
-                    ? 'Enter Aadhar number'
+                    ? 'Enter Govt. ID number'
                     : null,
               ),
               const SizedBox(height: 22),

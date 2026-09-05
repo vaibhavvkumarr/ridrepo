@@ -182,7 +182,7 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
             _InfoRow(label: 'Name', value: rental.customerName),
             _InfoRow(label: 'Age', value: '${rental.age}'),
             _InfoRow(label: 'Contact', value: rental.contactNumber),
-            _InfoRow(label: 'Aadhar number', value: rental.aadharNumber),
+            _InfoRow(label: 'Govt. ID number', value: rental.aadharNumber),
             const SizedBox(height: 22),
             Text('Trip window', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 10),
