@@ -79,7 +79,7 @@ class HelpSupportScreen extends StatelessWidget {
                   Text('Still stuck?',
                       style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 6),
-                  const Text(
+                  Text(
                     'Email us with any problem or query and we\'ll get back to you.',
                     style: TextStyle(color: AppColors.textSecondary),
                   ),
@@ -123,7 +123,7 @@ class _FaqTile extends StatelessWidget {
           expandedCrossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(answer,
-                style: const TextStyle(color: AppColors.textSecondary)),
+                style: TextStyle(color: AppColors.textSecondary)),
           ],
         ),
       ),

@@ -3,16 +3,27 @@ import 'package:google_fonts/google_fonts.dart';
 
 /// Central design tokens for Ridr - Bike Rental Manager.
 /// Clean, minimalist design with bold typography.
+///
+/// Surface/text tokens switch with [dark] so every screen that reads them
+/// directly (instead of through [Theme.of(context)]) still follows the
+/// manager's light/dark preference.
 class AppColors {
+  static bool dark = false;
+
   static const Color primaryRed = Color(0xFFEF4A3F);
   static const Color primaryRedDark = Color(0xFFD8362B);
 
-  static const Color surface = Color(0xFFF6F7F9);
-  static const Color card = Color(0xFFFFFFFF);
-  static const Color cardMuted = Color(0xFFE7EAEE);
+  static Color get surface =>
+      dark ? const Color(0xFF121316) : const Color(0xFFF6F7F9);
+  static Color get card =>
+      dark ? const Color(0xFF1C1E22) : const Color(0xFFFFFFFF);
+  static Color get cardMuted =>
+      dark ? const Color(0xFF2A2D33) : const Color(0xFFE7EAEE);
 
-  static const Color textPrimary = Color(0xFF1B1D21);
-  static const Color textSecondary = Color(0xFF6B7280);
+  static Color get textPrimary =>
+      dark ? const Color(0xFFF3F4F6) : const Color(0xFF1B1D21);
+  static Color get textSecondary =>
+      dark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280);
 
   static const Color success = Color(0xFF2FAE60);
   static const Color danger = Color(0xFFE04B3F);
@@ -28,7 +39,7 @@ class AppTheme {
         seedColor: AppColors.primaryRed,
         primary: AppColors.primaryRed,
         surface: AppColors.surface,
-        brightness: Brightness.light,
+        brightness: AppColors.dark ? Brightness.dark : Brightness.light,
       ),
 
       scaffoldBackgroundColor: AppColors.surface,
@@ -196,7 +207,7 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.textPrimary,
 
-          side: const BorderSide(
+          side: BorderSide(
             color: AppColors.cardMuted,
             width: 1.4,
           ),
@@ -237,14 +248,14 @@ class AppTheme {
 
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
+          borderSide: BorderSide(
             color: AppColors.cardMuted,
           ),
         ),
 
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
+        focusedBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(14)),
+          borderSide: BorderSide(
             color: AppColors.primaryRed,
             width: 1.6,
           ),
@@ -280,7 +291,7 @@ class AppTheme {
       // DIVIDERS
       // --------------------------------------------------
 
-      dividerTheme: const DividerThemeData(
+      dividerTheme: DividerThemeData(
         color: AppColors.cardMuted,
         thickness: 1,
       ),
@@ -289,7 +300,7 @@ class AppTheme {
       // ICONS
       // --------------------------------------------------
 
-      iconTheme: const IconThemeData(
+      iconTheme: IconThemeData(
         color: AppColors.textPrimary,
       ),
     );

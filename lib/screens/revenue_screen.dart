@@ -143,7 +143,7 @@ class _RevenueScreenState extends State<RevenueScreen> {
                             ),
                             Text(
                               '₹${row.total.toStringAsFixed(0)}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 15.5,
                                 color: AppColors.textPrimary,

@@ -142,7 +142,7 @@ class _AllBikesScreenState extends State<AllBikesScreen> {
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete_outline_rounded,
+                              icon: Icon(Icons.delete_outline_rounded,
                                   color: AppColors.textSecondary),
                               onPressed: () => _confirmDelete(bike),
                             ),

@@ -127,7 +127,7 @@ class _RentLeisureScreenState extends State<RentLeisureScreen> {
                                     ],
                                   ),
                                 ),
-                                const Icon(Icons.chevron_right_rounded,
+                                Icon(Icons.chevron_right_rounded,
                                     color: AppColors.textSecondary),
                               ],
                             ),

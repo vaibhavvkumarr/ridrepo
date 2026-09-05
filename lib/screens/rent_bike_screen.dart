@@ -102,7 +102,7 @@ class _RentBikeScreenState extends State<RentBikeScreen> {
                                   ],
                                 ),
                               ),
-                              const Icon(Icons.chevron_right_rounded,
+                              Icon(Icons.chevron_right_rounded,
                                   color: AppColors.textSecondary),
                             ],
                           ),

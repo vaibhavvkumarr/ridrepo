@@ -77,7 +77,7 @@ class ActionTile extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15.5,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary,

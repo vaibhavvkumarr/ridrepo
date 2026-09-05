@@ -228,7 +228,7 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
                                     const SizedBox(height: 2),
                                     Text(
                                       'Last rented ${dateFormat.format(summary.lastRentalAt)}',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                           fontSize: 12,
                                           color: AppColors.textSecondary),
                                     ),

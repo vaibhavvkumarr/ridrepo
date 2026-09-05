@@ -128,7 +128,7 @@ class _NotepadScreenState extends State<NotepadScreen> {
                                           const SizedBox(height: 4),
                                           Text(
                                             dateFormat.format(note.createdAt),
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                                 fontSize: 12,
                                                 color:
                                                     AppColors.textSecondary),

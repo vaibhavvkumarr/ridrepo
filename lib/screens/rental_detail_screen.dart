@@ -83,7 +83,7 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
             children: [
               Text(
                 'How was ${widget.rental.customerName} to deal with?',
-                style: const TextStyle(color: AppColors.textSecondary),
+                style: TextStyle(color: AppColors.textSecondary),
               ),
               const SizedBox(height: 14),
               Row(
@@ -214,7 +214,7 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 child: Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text('Customer rating',
                           style: TextStyle(color: AppColors.textSecondary)),
                     ),
@@ -303,7 +303,7 @@ class _InfoRow extends StatelessWidget {
         children: [
           Expanded(
             child: Text(label,
-                style: const TextStyle(color: AppColors.textSecondary)),
+                style: TextStyle(color: AppColors.textSecondary)),
           ),
           Expanded(
             child: Text(
@@ -351,13 +351,13 @@ class _PhotoView extends StatelessWidget {
                 : Container(
                     height: 120,
                     color: AppColors.cardMuted,
-                    child: const Icon(Icons.broken_image_outlined,
+                    child: Icon(Icons.broken_image_outlined,
                         color: AppColors.textSecondary),
                   ),
           ),
           const SizedBox(height: 6),
           Text(label,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 12.5, color: AppColors.textSecondary)),
         ],
       ),

@@ -133,7 +133,7 @@ class _StaffScreenState extends State<StaffScreen> {
                                   const SizedBox(height: 2),
                                   Text(
                                     'Joined ${dateFormat.format(staff.joiningDate)} · ₹${staff.salary.toStringAsFixed(0)}/mo',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontSize: 12,
                                         color: AppColors.textSecondary),
                                   ),
@@ -269,8 +269,7 @@ class _AddStaffSheetState extends State<_AddStaffSheet> {
                           style: TextStyle(fontWeight: FontWeight.w600)),
                       const Spacer(),
                       Text(dateFormat.format(_joiningDate),
-                          style:
-                              const TextStyle(color: AppColors.textSecondary)),
+                          style: TextStyle(color: AppColors.textSecondary)),
                     ],
                   ),
                 ),

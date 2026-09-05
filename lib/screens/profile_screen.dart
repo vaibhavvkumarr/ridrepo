@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../db/database_helper.dart';
 import '../theme/app_theme.dart';
+import '../theme/theme_controller.dart';
 import 'about_screen.dart';
 import 'help_support_screen.dart';
 import 'notepad_screen.dart';
@@ -157,6 +158,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // No documents directory to clean up.
     }
 
+    await ThemeController.instance.setDarkMode(false);
+
     if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const OnboardingScreen()),
@@ -166,70 +169,82 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
-      body: SafeArea(
-        child: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : ListView(
-                padding: const EdgeInsets.only(bottom: 32),
-                children: [
-                  _ProfileHeader(
-                    ownerName: _ownerName,
-                    shopName: _shopName,
-                    profilePhotoPath: _profilePhotoPath,
-                    companyPhotoPath: _companyPhotoPath,
-                    onTapProfilePhoto: () => _pickPhoto(isProfile: true),
-                    onTapCompanyPhoto: () => _pickPhoto(isProfile: false),
-                  ),
-                  const SizedBox(height: 14),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      children: [
-                        _MenuTile(
-                          icon: Icons.badge_outlined,
-                          label: 'Staff',
-                          subtitle: 'Add and manage your staff',
-                          onTap: () => _goTo(const StaffScreen()),
-                        ),
-                        _MenuTile(
-                          icon: Icons.sticky_note_2_outlined,
-                          label: 'Notepad',
-                          subtitle: 'Reminders for yourself',
-                          onTap: () => _goTo(const NotepadScreen()),
-                        ),
-                        _MenuTile(
-                          icon: Icons.help_outline_rounded,
-                          label: 'Help & Support',
-                          subtitle: 'FAQs and contact support',
-                          onTap: () => _goTo(const HelpSupportScreen()),
-                        ),
-                        _MenuTile(
-                          icon: Icons.info_outline_rounded,
-                          label: 'About',
-                          subtitle: 'A note from the founder',
-                          onTap: () => _goTo(const AboutScreen()),
-                        ),
-                        _MenuTile(
-                          icon: Icons.share_outlined,
-                          label: 'Share app',
-                          subtitle: 'Tell other shop owners about Ridr',
-                          onTap: _shareApp,
-                        ),
-                        _MenuTile(
-                          icon: Icons.restart_alt_rounded,
-                          label: 'Reset',
-                          subtitle: 'Erase all data and start over',
-                          iconColor: AppColors.danger,
-                          labelColor: AppColors.danger,
-                          onTap: _confirmReset,
-                        ),
-                      ],
+    // Wrapping the whole body in this listener (rather than just the switch
+    // row) guarantees every raw AppColors.* usage below repaints instantly
+    // when dark mode toggles, even though this screen's own State doesn't
+    // otherwise depend on Theme.of(context).
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeController.instance.isDarkMode,
+      builder: (context, isDark, _) => Scaffold(
+        appBar: AppBar(title: const Text('Profile')),
+        body: SafeArea(
+          child: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : ListView(
+                  padding: const EdgeInsets.only(bottom: 32),
+                  children: [
+                    _ProfileHeader(
+                      ownerName: _ownerName,
+                      shopName: _shopName,
+                      profilePhotoPath: _profilePhotoPath,
+                      companyPhotoPath: _companyPhotoPath,
+                      onTapProfilePhoto: () => _pickPhoto(isProfile: true),
+                      onTapCompanyPhoto: () => _pickPhoto(isProfile: false),
                     ),
-                  ),
-                ],
-              ),
+                    const SizedBox(height: 14),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        children: [
+                          _ThemeToggleTile(
+                            isDark: isDark,
+                            onChanged: (value) =>
+                                ThemeController.instance.setDarkMode(value),
+                          ),
+                          _MenuTile(
+                            icon: Icons.badge_outlined,
+                            label: 'Staff',
+                            subtitle: 'Add and manage your staff',
+                            onTap: () => _goTo(const StaffScreen()),
+                          ),
+                          _MenuTile(
+                            icon: Icons.sticky_note_2_outlined,
+                            label: 'Notepad',
+                            subtitle: 'Reminders for yourself',
+                            onTap: () => _goTo(const NotepadScreen()),
+                          ),
+                          _MenuTile(
+                            icon: Icons.help_outline_rounded,
+                            label: 'Help & Support',
+                            subtitle: 'FAQs and contact support',
+                            onTap: () => _goTo(const HelpSupportScreen()),
+                          ),
+                          _MenuTile(
+                            icon: Icons.info_outline_rounded,
+                            label: 'About',
+                            subtitle: 'A note from the founder',
+                            onTap: () => _goTo(const AboutScreen()),
+                          ),
+                          _MenuTile(
+                            icon: Icons.share_outlined,
+                            label: 'Share app',
+                            subtitle: 'Tell other shop owners about Ridr',
+                            onTap: _shareApp,
+                          ),
+                          _MenuTile(
+                            icon: Icons.restart_alt_rounded,
+                            label: 'Reset',
+                            subtitle: 'Erase all data and start over',
+                            iconColor: AppColors.danger,
+                            labelColor: AppColors.danger,
+                            onTap: _confirmReset,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
   }
@@ -278,7 +293,7 @@ class _ProfileHeader extends StatelessWidget {
                       : null,
                 ),
                 child: companyFile == null || !companyFile.existsSync()
-                    ? const Center(
+                    ? Center(
                         child: Icon(Icons.add_photo_alternate_outlined,
                             color: AppColors.textSecondary, size: 30),
                       )
@@ -424,15 +439,80 @@ class _MenuTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(subtitle,
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 12.5, color: AppColors.textSecondary)),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded,
+              Icon(Icons.chevron_right_rounded,
                   color: AppColors.textSecondary),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ThemeToggleTile extends StatelessWidget {
+  final bool isDark;
+  final ValueChanged<bool> onChanged;
+
+  const _ThemeToggleTile({required this.isDark, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.cardMuted),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: AppColors.primaryRed.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                isDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
+                color: AppColors.primaryRed,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Dark mode',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    isDark ? 'On' : 'Off',
+                    style: TextStyle(
+                        fontSize: 12.5, color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            Switch(
+              value: isDark,
+              activeThumbColor: AppColors.primaryRed,
+              onChanged: onChanged,
+            ),
+          ],
         ),
       ),
     );

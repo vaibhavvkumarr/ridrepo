@@ -182,7 +182,7 @@ class _RentalHistoryTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(dateFormat.format(rental.startDateTime),
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 12, color: AppColors.textSecondary)),
                 ],
               ),

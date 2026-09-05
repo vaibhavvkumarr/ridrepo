@@ -325,7 +325,7 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
                           ? _formatDuration(
                               _endDateTime.difference(_startDateTime))
                           : 'Select a valid end time',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.textSecondary,
                         fontWeight: FontWeight.w600,
                       ),
@@ -420,13 +420,13 @@ class _PhotoPickerTile extends StatelessWidget {
             ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.add_a_photo_outlined,
+                  Icon(Icons.add_a_photo_outlined,
                       color: AppColors.textSecondary),
                   const SizedBox(height: 8),
                   Text(
                     label,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 12.5, color: AppColors.textSecondary),
                   ),
                 ],
@@ -483,7 +483,7 @@ class _DateTimeTile extends StatelessWidget {
             const SizedBox(width: 12),
             Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
             const Spacer(),
-            Text(value, style: const TextStyle(color: AppColors.textSecondary)),
+            Text(value, style: TextStyle(color: AppColors.textSecondary)),
           ],
         ),
       ),

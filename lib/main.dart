@@ -3,8 +3,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'theme/app_theme.dart';
+import 'theme/theme_controller.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await ThemeController.instance.load();
   runApp(const RidrApp());
 }
 
@@ -13,11 +16,16 @@ class RidrApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Ridr - Bike Rental Manager',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      home: const _LaunchGate(),
+    return ValueListenableBuilder<bool>(
+      valueListenable: ThemeController.instance.isDarkMode,
+      builder: (context, isDark, _) {
+        return MaterialApp(
+          title: 'Ridr - Bike Rental Manager',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light,
+          home: const _LaunchGate(),
+        );
+      },
     );
   }
 }

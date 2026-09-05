@@ -23,7 +23,7 @@ class AboutScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(color: AppColors.cardMuted),
               ),
-              child: const Text(
+              child: Text(
                 'Hey there! 👋\n\n'
                 'I built Ridr because I watched shop owners like you track rentals '
                 'on scraps of paper and lose track of who had which bike. This app '
@@ -42,7 +42,7 @@ class AboutScreen extends StatelessWidget {
                     .textTheme
                     .titleMedium
                     ?.copyWith(color: AppColors.primaryRed)),
-            const Text('Founder, Ridr',
+            Text('Founder, Ridr',
                 style: TextStyle(color: AppColors.textSecondary)),
           ],
         ),
