@@ -2,10 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../db/database_helper.dart';
-import '../models/bike.dart';
+import '../models/customer.dart';
 import '../models/rental.dart';
 import '../theme/app_theme.dart';
-import 'rental_detail_screen.dart';
+import 'customer_detail_screen.dart';
+
+class _CustomerSummary {
+  final Customer customer;
+  final List<Rental> rentals; // sorted newest first
+
+  _CustomerSummary(this.customer, this.rentals);
+
+  double? get averageRating {
+    final rated = rentals.where((r) => r.rating != null).toList();
+    if (rated.isEmpty) return null;
+    return rated.map((r) => r.rating!).reduce((a, b) => a + b) / rated.length;
+  }
+
+  DateTime get lastRentalAt => rentals.first.startDateTime;
+}
 
 class AllCustomersScreen extends StatefulWidget {
   const AllCustomersScreen({super.key});
@@ -16,7 +31,7 @@ class AllCustomersScreen extends StatefulWidget {
 
 class _AllCustomersScreenState extends State<AllCustomersScreen> {
   List<Rental> _rentals = [];
-  Map<int, Bike> _bikesById = {};
+  List<Customer> _customers = [];
   bool _loading = true;
   int? _selectedDays;
 
@@ -28,11 +43,11 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
 
   Future<void> _load() async {
     final rentals = await DatabaseHelper.instance.getAllRentals();
-    final bikes = await DatabaseHelper.instance.getAllBikes();
+    final customers = await DatabaseHelper.instance.getAllCustomers();
     if (!mounted) return;
     setState(() {
       _rentals = rentals;
-      _bikesById = {for (final b in bikes) b.id!: b};
+      _customers = customers;
       _loading = false;
     });
   }
@@ -40,13 +55,35 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
   String get _filterLabel =>
       _selectedDays == null ? 'Lifetime' : 'Last $_selectedDays days';
 
-  List<Rental> get _filteredRentals {
-    if (_selectedDays == null) return _rentals;
+  List<_CustomerSummary> get _customerSummaries {
+    final customersById = {for (final c in _customers) c.id!: c};
+    final customerIdByAadhar = {
+      for (final c in _customers) c.aadharNumber: c.id!
+    };
 
-    final cutoff = DateTime.now().subtract(Duration(days: _selectedDays!));
-    return _rentals
-        .where((rental) => !rental.startDateTime.isBefore(cutoff))
-        .toList();
+    final cutoff = _selectedDays == null
+        ? null
+        : DateTime.now().subtract(Duration(days: _selectedDays!));
+
+    final rentalsByCustomer = <int, List<Rental>>{};
+    for (final rental in _rentals) {
+      if (cutoff != null && rental.startDateTime.isBefore(cutoff)) continue;
+      final customerId =
+          rental.customerId ?? customerIdByAadhar[rental.aadharNumber];
+      if (customerId == null) continue;
+      rentalsByCustomer.putIfAbsent(customerId, () => []).add(rental);
+    }
+
+    final summaries = <_CustomerSummary>[];
+    for (final entry in rentalsByCustomer.entries) {
+      final customer = customersById[entry.key];
+      if (customer == null) continue;
+      final rentals = entry.value
+        ..sort((a, b) => b.startDateTime.compareTo(a.startDateTime));
+      summaries.add(_CustomerSummary(customer, rentals));
+    }
+    summaries.sort((a, b) => b.lastRentalAt.compareTo(a.lastRentalAt));
+    return summaries;
   }
 
   Future<void> _showFilterSheet() async {
@@ -92,7 +129,7 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('d MMM yyyy');
-    final rentals = _filteredRentals;
+    final summaries = _customerSummaries;
     return Scaffold(
       appBar: AppBar(
         title: const Text('All Customers'),
@@ -110,7 +147,7 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
       body: SafeArea(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
-            : rentals.isEmpty
+            : summaries.isEmpty
                 ? Center(
                     child: Text(
                       _rentals.isEmpty
@@ -121,7 +158,7 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
                   )
                 : ListView.separated(
                     padding: const EdgeInsets.all(20),
-                    itemCount: rentals.length + 1,
+                    itemCount: summaries.length + 1,
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemBuilder: (context, i) {
                       if (i == 0) {
@@ -130,23 +167,25 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
                           style: Theme.of(context).textTheme.bodyMedium,
                         );
                       }
-                      final rental = rentals[i - 1];
-                      final bike = _bikesById[rental.bikeId];
+                      final summary = summaries[i - 1];
+                      final customer = summary.customer;
+                      final rentals = summary.rentals;
+                      final hasActive =
+                          rentals.any((r) => r.status == 'active');
+                      final avgRating = summary.averageRating;
                       return InkWell(
                         borderRadius: BorderRadius.circular(18),
-                        onTap: bike == null
-                            ? null
-                            : () async {
-                                await Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => RentalDetailScreen(
-                                      rental: rental,
-                                      bike: bike,
-                                    ),
-                                  ),
-                                );
-                                _load();
-                              },
+                        onTap: () async {
+                          await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => CustomerDetailScreen(
+                                customer: customer,
+                                rentals: rentals,
+                              ),
+                            ),
+                          );
+                          _load();
+                        },
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -160,8 +199,8 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
                                 radius: 22,
                                 backgroundColor: AppColors.cardMuted,
                                 child: Text(
-                                  rental.customerName.isNotEmpty
-                                      ? rental.customerName[0].toUpperCase()
+                                  customer.name.isNotEmpty
+                                      ? customer.name[0].toUpperCase()
                                       : '?',
                                   style: const TextStyle(
                                     color: AppColors.primaryRed,
@@ -174,21 +213,21 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(rental.customerName,
+                                    Text(customer.name,
                                         style: Theme.of(context)
                                             .textTheme
                                             .titleLarge
                                             ?.copyWith(fontSize: 15.5)),
                                     const SizedBox(height: 2),
                                     Text(
-                                      '${rental.contactNumber} · ${bike != null ? bike.number : 'Unknown bike'}',
+                                      customer.contactNumber,
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium,
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      dateFormat.format(rental.startDateTime),
+                                      'Last rented ${dateFormat.format(summary.lastRentalAt)}',
                                       style: const TextStyle(
                                           fontSize: 12,
                                           color: AppColors.textSecondary),
@@ -196,26 +235,49 @@ class _AllCustomersScreenState extends State<AllCustomersScreen> {
                                   ],
                                 ),
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 5),
-                                decoration: BoxDecoration(
-                                  color: (rental.status == 'active'
-                                          ? AppColors.warning
-                                          : AppColors.success)
-                                      .withValues(alpha: 0.14),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  rental.status == 'active' ? 'Active' : 'Done',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    color: rental.status == 'active'
-                                        ? AppColors.warning
-                                        : AppColors.success,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: (hasActive
+                                              ? AppColors.warning
+                                              : AppColors.primaryRed)
+                                          .withValues(alpha: 0.14),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      'Rented ${rentals.length}x',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: hasActive
+                                            ? AppColors.warning
+                                            : AppColors.primaryRed,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  if (avgRating != null) ...[
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.star_rounded,
+                                            color: AppColors.primaryRed,
+                                            size: 15),
+                                        const SizedBox(width: 2),
+                                        Text(
+                                          avgRating.toStringAsFixed(1),
+                                          style: const TextStyle(
+                                            fontSize: 12.5,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ],
                               ),
                             ],
                           ),

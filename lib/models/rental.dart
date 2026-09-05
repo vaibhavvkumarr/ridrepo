@@ -1,6 +1,7 @@
 class Rental {
   final int? id;
   final int bikeId;
+  final int? customerId;
 
   // Customer details
   final String customerName;
@@ -21,10 +22,12 @@ class Rental {
   // Lifecycle
   final String status; // 'active' or 'completed'
   final DateTime? actualReturnDateTime;
+  final int? rating; // 1-5, given by the manager when the trip ends
 
   Rental({
     this.id,
     required this.bikeId,
+    this.customerId,
     required this.customerName,
     required this.age,
     required this.contactNumber,
@@ -37,18 +40,22 @@ class Rental {
     required this.deposit,
     this.status = 'active',
     this.actualReturnDateTime,
+    this.rating,
   });
 
   bool get isOverdue =>
       status == 'active' && DateTime.now().isAfter(endDateTime);
 
   Rental copyWith({
+    int? customerId,
     String? status,
     DateTime? actualReturnDateTime,
+    int? rating,
   }) {
     return Rental(
       id: id,
       bikeId: bikeId,
+      customerId: customerId ?? this.customerId,
       customerName: customerName,
       age: age,
       contactNumber: contactNumber,
@@ -61,6 +68,7 @@ class Rental {
       deposit: deposit,
       status: status ?? this.status,
       actualReturnDateTime: actualReturnDateTime ?? this.actualReturnDateTime,
+      rating: rating ?? this.rating,
     );
   }
 
@@ -68,6 +76,7 @@ class Rental {
     return {
       'id': id,
       'bikeId': bikeId,
+      'customerId': customerId,
       'customerName': customerName,
       'age': age,
       'contactNumber': contactNumber,
@@ -80,6 +89,7 @@ class Rental {
       'deposit': deposit,
       'status': status,
       'actualReturnDateTime': actualReturnDateTime?.toIso8601String(),
+      'rating': rating,
     };
   }
 
@@ -87,6 +97,7 @@ class Rental {
     return Rental(
       id: map['id'] as int?,
       bikeId: map['bikeId'] as int,
+      customerId: map['customerId'] as int?,
       customerName: map['customerName'] as String,
       age: map['age'] as int,
       contactNumber: map['contactNumber'] as String,
@@ -101,6 +112,7 @@ class Rental {
       actualReturnDateTime: map['actualReturnDateTime'] != null
           ? DateTime.parse(map['actualReturnDateTime'] as String)
           : null,
+      rating: map['rating'] as int?,
     );
   }
 }

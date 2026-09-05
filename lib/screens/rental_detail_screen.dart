@@ -56,14 +56,67 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
       ),
     );
     if (confirmed != true) return;
+    if (!mounted) return;
+
+    final rating = await _pickRating();
+    if (rating == null) return;
 
     setState(() => _ending = true);
     await DatabaseHelper.instance
-        .completeRental(widget.rental.id!, DateTime.now());
+        .completeRental(widget.rental.id!, DateTime.now(), rating: rating);
     await DatabaseHelper.instance
         .updateBikeStatus(widget.bike.id!, 'available');
     if (!mounted) return;
     Navigator.of(context).pop(true);
+  }
+
+  Future<int?> _pickRating() async {
+    int selected = 5;
+    return showDialog<int>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Rate the customer'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'How was ${widget.rental.customerName} to deal with?',
+                style: const TextStyle(color: AppColors.textSecondary),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (i) {
+                  final star = i + 1;
+                  return IconButton(
+                    onPressed: () => setDialogState(() => selected = star),
+                    icon: Icon(
+                      star <= selected
+                          ? Icons.star_rounded
+                          : Icons.star_border_rounded,
+                      color: AppColors.primaryRed,
+                      size: 32,
+                    ),
+                  );
+                }),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(selected),
+              child: const Text('Confirm'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -152,6 +205,35 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
                 label: 'Actual duration',
                 value: _formatDuration(
                   rental.actualReturnDateTime!.difference(rental.startDateTime),
+                ),
+              ),
+            ],
+            if (rental.rating != null) ...[
+              const SizedBox(height: 6),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  children: [
+                    const Expanded(
+                      child: Text('Customer rating',
+                          style: TextStyle(color: AppColors.textSecondary)),
+                    ),
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: List.generate(
+                          5,
+                          (i) => Icon(
+                            i < rental.rating!
+                                ? Icons.star_rounded
+                                : Icons.star_border_rounded,
+                            color: AppColors.primaryRed,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

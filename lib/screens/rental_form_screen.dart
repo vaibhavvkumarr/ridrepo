@@ -132,12 +132,25 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
 
     setState(() => _saving = true);
 
+    final name = _nameController.text.trim();
+    final age = int.parse(_ageController.text.trim());
+    final contact = _contactController.text.trim();
+    final aadhar = _aadharController.text.trim();
+
+    final customerId = await DatabaseHelper.instance.upsertCustomer(
+      aadharNumber: aadhar,
+      name: name,
+      age: age,
+      contactNumber: contact,
+    );
+
     final rental = Rental(
       bikeId: widget.bike.id!,
-      customerName: _nameController.text.trim(),
-      age: int.parse(_ageController.text.trim()),
-      contactNumber: _contactController.text.trim(),
-      aadharNumber: _aadharController.text.trim(),
+      customerId: customerId,
+      customerName: name,
+      age: age,
+      contactNumber: contact,
+      aadharNumber: aadhar,
       personWithBikePhotoPath: _personBikePhoto!.path,
       licensePhotoPath: _licensePhoto!.path,
       startDateTime: _startDateTime,

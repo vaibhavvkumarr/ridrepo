@@ -2,6 +2,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../models/bike.dart';
+import '../models/customer.dart';
 import '../models/rental.dart';
 
 class DatabaseHelper {
@@ -21,9 +22,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'ridr.db');
     return openDatabase(
       path,
-      // Keep the current schema version so installations that opened the
-      // payment-method build do not hit a database downgrade.
-      version: 2,
+      version: 3,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE bikes (
@@ -36,9 +35,20 @@ class DatabaseHelper {
           )
         ''');
         await db.execute('''
+          CREATE TABLE customers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            aadharNumber TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL,
+            age INTEGER NOT NULL,
+            contactNumber TEXT NOT NULL,
+            createdAt TEXT NOT NULL
+          )
+        ''');
+        await db.execute('''
           CREATE TABLE rentals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             bikeId INTEGER NOT NULL,
+            customerId INTEGER,
             customerName TEXT NOT NULL,
             age INTEGER NOT NULL,
             contactNumber TEXT NOT NULL,
@@ -52,13 +62,62 @@ class DatabaseHelper {
             status TEXT NOT NULL DEFAULT 'active',
             actualReturnDateTime TEXT,
             paymentMethod TEXT,
-            FOREIGN KEY (bikeId) REFERENCES bikes (id)
+            rating INTEGER,
+            FOREIGN KEY (bikeId) REFERENCES bikes (id),
+            FOREIGN KEY (customerId) REFERENCES customers (id)
           )
         ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
           await db.execute('ALTER TABLE rentals ADD COLUMN paymentMethod TEXT');
+        }
+        if (oldVersion < 3) {
+          await db.execute('''
+            CREATE TABLE customers (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              aadharNumber TEXT NOT NULL UNIQUE,
+              name TEXT NOT NULL,
+              age INTEGER NOT NULL,
+              contactNumber TEXT NOT NULL,
+              createdAt TEXT NOT NULL
+            )
+          ''');
+          await db.execute('ALTER TABLE rentals ADD COLUMN customerId INTEGER');
+          await db.execute('ALTER TABLE rentals ADD COLUMN rating INTEGER');
+
+          // Backfill a customer per distinct Aadhar number already on file,
+          // then link existing rentals to it.
+          final existing = await db.query('rentals',
+              columns: [
+                'aadharNumber',
+                'customerName',
+                'age',
+                'contactNumber',
+                'startDateTime'
+              ],
+              orderBy: 'startDateTime ASC');
+          final seen = <String, int>{};
+          for (final row in existing) {
+            final aadhar = row['aadharNumber'] as String;
+            if (seen.containsKey(aadhar)) continue;
+            final customerId = await db.insert('customers', {
+              'aadharNumber': aadhar,
+              'name': row['customerName'],
+              'age': row['age'],
+              'contactNumber': row['contactNumber'],
+              'createdAt': row['startDateTime'],
+            });
+            seen[aadhar] = customerId;
+          }
+          for (final entry in seen.entries) {
+            await db.update(
+              'rentals',
+              {'customerId': entry.value},
+              where: 'aadharNumber = ?',
+              whereArgs: [entry.key],
+            );
+          }
         }
       },
     );
@@ -103,6 +162,52 @@ class DatabaseHelper {
     return db.delete('bikes', where: 'id = ?', whereArgs: [bikeId]);
   }
 
+  // ---------- Customers ----------
+
+  /// Finds the customer for [aadharNumber], creating one if this Aadhar
+  /// number has never been seen before. This is the customer's stable,
+  /// unique id — every rental made with the same Aadhar number links back
+  /// to the same customer record.
+  Future<int> upsertCustomer({
+    required String aadharNumber,
+    required String name,
+    required int age,
+    required String contactNumber,
+  }) async {
+    final db = await database;
+    final rows = await db.query(
+      'customers',
+      where: 'aadharNumber = ?',
+      whereArgs: [aadharNumber],
+    );
+    if (rows.isNotEmpty) {
+      final id = rows.first['id'] as int;
+      await db.update(
+        'customers',
+        {'name': name, 'age': age, 'contactNumber': contactNumber},
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      return id;
+    }
+    return db.insert(
+      'customers',
+      Customer(
+        aadharNumber: aadharNumber,
+        name: name,
+        age: age,
+        contactNumber: contactNumber,
+      ).toMap()
+        ..remove('id'),
+    );
+  }
+
+  Future<List<Customer>> getAllCustomers() async {
+    final db = await database;
+    final rows = await db.query('customers', orderBy: 'createdAt DESC');
+    return rows.map((r) => Customer.fromMap(r)).toList();
+  }
+
   // ---------- Rentals ----------
 
   Future<int> insertRental(Rental rental) async {
@@ -127,13 +232,18 @@ class DatabaseHelper {
     return rows.map((r) => Rental.fromMap(r)).toList();
   }
 
-  Future<int> completeRental(int rentalId, DateTime returnedAt) async {
+  Future<int> completeRental(
+    int rentalId,
+    DateTime returnedAt, {
+    int? rating,
+  }) async {
     final db = await database;
     return db.update(
       'rentals',
       {
         'status': 'completed',
         'actualReturnDateTime': returnedAt.toIso8601String(),
+        if (rating != null) 'rating': rating,
       },
       where: 'id = ?',
       whereArgs: [rentalId],
