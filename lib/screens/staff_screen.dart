@@ -280,7 +280,7 @@ class _AddStaffSheetState extends State<_AddStaffSheet> {
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 decoration:
-                    const InputDecoration(labelText: 'Salary (₹ per month)'),
+                    const InputDecoration(labelText: 'Salary per month'),
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return 'Required';
                   if (double.tryParse(v.trim()) == null) return 'Invalid';
