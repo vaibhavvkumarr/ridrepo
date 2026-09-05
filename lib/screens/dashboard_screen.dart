@@ -166,7 +166,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           value: '$rented', label: 'Rented'),
                                     ],
                                   ),
-                                  const SizedBox(height: 2),
+                                  const SizedBox(height: 6),
                                   Center(
                                     child: InkWell(
                                       borderRadius: BorderRadius.circular(20),
@@ -174,16 +174,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           _showDailyStats = !_showDailyStats),
                                       child: Padding(
                                         padding: const EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 0),
-                                        child: AnimatedRotation(
-                                          turns: _showDailyStats ? 0.5 : 0,
-                                          duration:
-                                              const Duration(milliseconds: 200),
-                                          child: Icon(
-                                            Icons.arrow_drop_down_rounded,
-                                            color: AppColors.textSecondary,
-                                            size: 36,
-                                          ),
+                                            horizontal: 10, vertical: 6),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              _showDailyStats
+                                                  ? 'Less details'
+                                                  : 'More details',
+                                              style: TextStyle(
+                                                fontSize: 12.5,
+                                                fontWeight: FontWeight.w700,
+                                                color: AppColors.textSecondary,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 3),
+                                            AnimatedRotation(
+                                              turns: _showDailyStats ? 0.5 : 0,
+                                              duration: const Duration(
+                                                  milliseconds: 200),
+                                              child: Icon(
+                                                Icons
+                                                    .keyboard_arrow_down_rounded,
+                                                color: AppColors.textSecondary,
+                                                size: 18,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
@@ -212,8 +229,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               DashboardStatRow(
                                                 icon: Icons
                                                     .assignment_return_outlined,
-                                                label:
-                                                    'Returns Today',
+                                                label: 'Returns Today',
                                                 value: '$returningToday',
                                               ),
                                               const SizedBox(height: 10),
