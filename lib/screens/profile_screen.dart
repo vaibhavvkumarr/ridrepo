@@ -209,6 +209,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 ThemeController.instance.setDarkMode(value),
                           ),
                           _MenuTile(
+                            icon: Icons.badge_outlined,
+                            label: 'Staff',
+                            subtitle: 'Add and manage your staff',
+                            onTap: () => _goTo(const StaffScreen()),
+                          ),
+                          _MenuTile(
                             icon: Icons.category_outlined,
                             label: 'Vehicle Types',
                             subtitle: 'Choose what shows on your home screen',
@@ -225,12 +231,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   '${currency.currencyName} (${currency.symbol})',
                               onTap: () => _goTo(const CurrencyScreen()),
                             ),
-                          ),
-                          _MenuTile(
-                            icon: Icons.badge_outlined,
-                            label: 'Staff',
-                            subtitle: 'Add and manage your staff',
-                            onTap: () => _goTo(const StaffScreen()),
                           ),
                           _MenuTile(
                             icon: Icons.sticky_note_2_outlined,
@@ -263,6 +263,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             iconColor: AppColors.danger,
                             labelColor: AppColors.danger,
                             onTap: _confirmReset,
+                          ),
+                          const SizedBox(height: 16),
+                          Center(
+                            child: Text(
+                              'Made with ❤️ in India 🇮🇳',
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
                           ),
                         ],
                       ),
