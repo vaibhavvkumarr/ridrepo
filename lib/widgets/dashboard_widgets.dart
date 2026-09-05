@@ -45,6 +45,49 @@ class StatPill extends StatelessWidget {
   }
 }
 
+/// A plain label/value line used below the stat pills for quick figures
+/// like today's collection or deposits held.
+class DashboardStatRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const DashboardStatRow({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 17, color: AppColors.primaryRed),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 /// Big tappable action tile used on the dashboard grid.
 class ActionTile extends StatelessWidget {
   final String label;
