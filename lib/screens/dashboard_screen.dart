@@ -7,6 +7,7 @@ import '../widgets/dashboard_widgets.dart';
 import 'add_bike_screen.dart';
 import 'all_bikes_screen.dart';
 import 'all_customers_screen.dart';
+import 'profile_screen.dart';
 import 'rent_bike_screen.dart';
 import 'rent_leisure_screen.dart';
 import 'revenue_screen.dart';
@@ -64,14 +65,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
               : ListView(
                   padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
                   children: [
-                    Text(
-                      'Hi, $_ownerName',
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      _shopName,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Hi, $_ownerName',
+                                style:
+                                    Theme.of(context).textTheme.headlineMedium,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _shopName,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Profile',
+                          icon: const Icon(Icons.menu_rounded),
+                          onPressed: () => _goTo(const ProfileScreen()),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 22),
                     Container(

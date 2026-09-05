@@ -3,7 +3,9 @@ import 'package:sqflite/sqflite.dart';
 
 import '../models/bike.dart';
 import '../models/customer.dart';
+import '../models/note.dart';
 import '../models/rental.dart';
+import '../models/staff.dart';
 
 class DatabaseHelper {
   DatabaseHelper._internal();
@@ -22,7 +24,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'ridr.db');
     return openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE bikes (
@@ -65,6 +67,24 @@ class DatabaseHelper {
             rating INTEGER,
             FOREIGN KEY (bikeId) REFERENCES bikes (id),
             FOREIGN KEY (customerId) REFERENCES customers (id)
+          )
+        ''');
+        await db.execute('''
+          CREATE TABLE staff (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            role TEXT NOT NULL,
+            joiningDate TEXT NOT NULL,
+            salary REAL NOT NULL,
+            createdAt TEXT NOT NULL
+          )
+        ''');
+        await db.execute('''
+          CREATE TABLE notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            text TEXT NOT NULL,
+            createdAt TEXT NOT NULL
           )
         ''');
       },
@@ -119,8 +139,38 @@ class DatabaseHelper {
             );
           }
         }
+        if (oldVersion < 4) {
+          await db.execute('''
+            CREATE TABLE staff (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              name TEXT NOT NULL,
+              phone TEXT NOT NULL,
+              role TEXT NOT NULL,
+              joiningDate TEXT NOT NULL,
+              salary REAL NOT NULL,
+              createdAt TEXT NOT NULL
+            )
+          ''');
+          await db.execute('''
+            CREATE TABLE notes (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              text TEXT NOT NULL,
+              createdAt TEXT NOT NULL
+            )
+          ''');
+        }
       },
     );
+  }
+
+  /// Wipes the whole database file so the app can start fresh. The manager
+  /// still has to go through onboarding again afterwards.
+  Future<void> resetAll() async {
+    final db = await database;
+    final path = db.path;
+    await db.close();
+    await deleteDatabase(path);
+    _db = null;
   }
 
   // ---------- Bikes ----------
@@ -248,5 +298,41 @@ class DatabaseHelper {
       where: 'id = ?',
       whereArgs: [rentalId],
     );
+  }
+
+  // ---------- Staff ----------
+
+  Future<int> insertStaff(Staff staff) async {
+    final db = await database;
+    return db.insert('staff', staff.toMap()..remove('id'));
+  }
+
+  Future<List<Staff>> getAllStaff() async {
+    final db = await database;
+    final rows = await db.query('staff', orderBy: 'createdAt DESC');
+    return rows.map((r) => Staff.fromMap(r)).toList();
+  }
+
+  Future<int> deleteStaff(int staffId) async {
+    final db = await database;
+    return db.delete('staff', where: 'id = ?', whereArgs: [staffId]);
+  }
+
+  // ---------- Notes ----------
+
+  Future<int> insertNote(Note note) async {
+    final db = await database;
+    return db.insert('notes', note.toMap()..remove('id'));
+  }
+
+  Future<List<Note>> getAllNotes() async {
+    final db = await database;
+    final rows = await db.query('notes', orderBy: 'createdAt DESC');
+    return rows.map((r) => Note.fromMap(r)).toList();
+  }
+
+  Future<int> deleteNote(int noteId) async {
+    final db = await database;
+    return db.delete('notes', where: 'id = ?', whereArgs: [noteId]);
   }
 }
