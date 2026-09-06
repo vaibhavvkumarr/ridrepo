@@ -334,7 +334,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const SizedBox(height: 16),
                           Center(
                             child: Text(
-                              'Made with ❤️ in India 🇮🇳',
+                              'Ridr — making vehicle rentals effortless.',
                               style: TextStyle(
                                 fontSize: 12.5,
                                 color: AppColors.textSecondary,
