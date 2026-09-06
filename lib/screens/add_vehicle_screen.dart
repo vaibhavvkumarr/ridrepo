@@ -161,7 +161,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
               ),
               const SizedBox(height: 14),
               _ExpiryDateField(
-                label: 'Pollution certificate expiry date',
+                label: 'Pollution expiry date',
                 date: _pollutionExpiry,
                 onTap: () => _pickExpiryDate(isInsurance: false),
               ),

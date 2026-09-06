@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../db/database_helper.dart';
 import '../models/app_currency.dart';
@@ -54,6 +55,16 @@ class _StaffScreenState extends State<StaffScreen> {
     if (confirmed != true) return;
     await DatabaseHelper.instance.deleteStaff(staff.id!);
     _load();
+  }
+
+  Future<void> _callStaff(Staff staff) async {
+    final uri = Uri(scheme: 'tel', path: staff.phone);
+    final launched = await launchUrl(uri);
+    if (!launched && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not open the dialer for ${staff.phone}')),
+      );
+    }
   }
 
   Future<void> _addStaff() async {
@@ -144,6 +155,12 @@ class _StaffScreenState extends State<StaffScreen> {
                                     ),
                                   ],
                                 ),
+                              ),
+                              IconButton(
+                                tooltip: 'Call ${staff.name}',
+                                icon: const Icon(Icons.call_rounded,
+                                    color: AppColors.success),
+                                onPressed: () => _callStaff(staff),
                               ),
                               IconButton(
                                 tooltip: 'Remove staff',
