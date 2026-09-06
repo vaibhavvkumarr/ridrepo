@@ -40,6 +40,12 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
   bool _saving = false;
   final _picker = ImagePicker();
 
+  int get _approxDays {
+    final minutes = _endDateTime.difference(_startDateTime).inMinutes;
+    if (minutes <= 0) return 0;
+    return (minutes / (24 * 60)).ceil();
+  }
+
   String _formatDuration(Duration duration) {
     final minutes = duration.inMinutes;
     if (minutes <= 0) return '0 minutes';
@@ -338,15 +344,30 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
                       const Text('Total duration',
                           style: TextStyle(fontWeight: FontWeight.w600)),
                       const Spacer(),
-                      Text(
-                        _endDateTime.isAfter(_startDateTime)
-                            ? _formatDuration(
-                                _endDateTime.difference(_startDateTime))
-                            : 'Select a valid end time',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            _endDateTime.isAfter(_startDateTime)
+                                ? _formatDuration(
+                                    _endDateTime.difference(_startDateTime))
+                                : 'Select a valid end time',
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (_endDateTime.isAfter(_startDateTime)) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              '≈ $_approxDays ${_approxDays == 1 ? 'day' : 'days'}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ],
                   ),
