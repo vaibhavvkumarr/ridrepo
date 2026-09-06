@@ -75,7 +75,7 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
   }
 
   Future<int?> _pickRating() async {
-    int selected = 5;
+    int selected = 0;
     return showDialog<int>(
       context: context,
       barrierDismissible: false,
@@ -114,7 +114,8 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () => Navigator.of(ctx).pop(selected),
+              onPressed:
+                  selected == 0 ? null : () => Navigator.of(ctx).pop(selected),
               child: const Text('Confirm'),
             ),
           ],
