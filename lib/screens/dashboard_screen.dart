@@ -140,10 +140,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             const SizedBox(height: 22),
                             Container(
-                              padding: const EdgeInsets.fromLTRB(18, 18, 18, 4),
+                              padding: const EdgeInsets.fromLTRB(20, 20, 20, 6),
                               decoration: BoxDecoration(
-                                color: AppColors.cardMuted,
-                                borderRadius: BorderRadius.circular(22),
+                                color: AppColors.card,
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(color: AppColors.cardMuted),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,20 +154,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     style:
                                         Theme.of(context).textTheme.titleLarge,
                                   ),
-                                  const SizedBox(height: 14),
-                                  Row(
-                                    children: [
-                                      StatPill(
-                                          value: '$total',
-                                          label: 'All Vehicles'),
-                                      StatPill(
-                                          value: '$available',
-                                          label: 'Available\nVehicles'),
-                                      StatPill(
-                                          value: '$rented', label: 'Rented'),
-                                    ],
+                                  const SizedBox(height: 20),
+                                  IntrinsicHeight(
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: _DashboardStat(
+                                            value: '$total',
+                                            label: 'All Vehicles',
+                                          ),
+                                        ),
+                                        const _StatDivider(),
+                                        Expanded(
+                                          child: _DashboardStat(
+                                            value: '$available',
+                                            label: 'Available',
+                                            valueColor: AppColors.success,
+                                          ),
+                                        ),
+                                        const _StatDivider(),
+                                        Expanded(
+                                          child: _DashboardStat(
+                                            value: '$rented',
+                                            label: 'Rented',
+                                            valueColor: rented > 0
+                                                ? AppColors.primaryRed
+                                                : null,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  const SizedBox(height: 6),
+                                  const SizedBox(height: 16),
                                   Center(
                                     child: InkWell(
                                       borderRadius: BorderRadius.circular(20),
@@ -216,7 +235,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Divider(
-                                                  color: AppColors.card,
+                                                  color: AppColors.cardMuted,
                                                   height: 1),
                                               const SizedBox(height: 14),
                                               DashboardStatRow(
@@ -272,6 +291,60 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
         ),
       ),
+    );
+  }
+}
+
+/// Single "value + label" column used in the redesigned Dashboard stat row.
+class _DashboardStat extends StatelessWidget {
+  final String value;
+  final String label;
+  final Color? valueColor;
+
+  const _DashboardStat({
+    required this.value,
+    required this.label,
+    this.valueColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w800,
+            height: 1,
+            color: valueColor ?? AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Thin vertical rule between Dashboard stat columns.
+class _StatDivider extends StatelessWidget {
+  const _StatDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 1,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      color: AppColors.cardMuted,
     );
   }
 }
