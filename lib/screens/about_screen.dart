@@ -1,9 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../theme/app_theme.dart';
 
+const _instagramUrl = 'https://www.instagram.com/vaibhavvkumar/';
+const _websiteUrl = 'https://vaibhavvkumarr.github.io/ridrforyou/';
+
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
+
+  Future<void> _openUrl(BuildContext context, String url) async {
+    final launched =
+        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    if (!launched && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open the link.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +58,26 @@ class AboutScreen extends StatelessWidget {
                     ?.copyWith(color: AppColors.primaryRed)),
             Text('Founder, Ridr',
                 style: TextStyle(color: AppColors.textSecondary)),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _openUrl(context, _instagramUrl),
+                    icon: const Icon(Icons.camera_alt_outlined, size: 18),
+                    label: const Text('Instagram'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _openUrl(context, _websiteUrl),
+                    icon: const Icon(Icons.language_rounded, size: 18),
+                    label: const Text('Website'),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
