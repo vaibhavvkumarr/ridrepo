@@ -10,6 +10,7 @@ import '../models/vehicle.dart';
 import '../models/vehicle_type.dart';
 import '../settings/currency_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/send_bill_sheet.dart';
 import '../widgets/vehicle_document_dates.dart';
 
 class RentalDetailScreen extends StatefulWidget {
@@ -66,10 +67,20 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
     if (rating == null) return;
 
     setState(() => _ending = true);
+    final returnedAt = DateTime.now();
     await DatabaseHelper.instance
-        .completeRental(widget.rental.id!, DateTime.now(), rating: rating);
+        .completeRental(widget.rental.id!, returnedAt, rating: rating);
     await DatabaseHelper.instance
         .updateVehicleStatus(widget.vehicle.id!, 'available');
+    if (!mounted) return;
+
+    final completedRental = widget.rental.copyWith(
+      status: 'completed',
+      actualReturnDateTime: returnedAt,
+      rating: rating,
+    );
+    await showSendBillSheet(context,
+        rental: completedRental, vehicle: widget.vehicle);
     if (!mounted) return;
     Navigator.of(context).pop(true);
   }
@@ -261,6 +272,13 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
                   label: 'Deposit',
                   value:
                       '${currency.symbol}${rental.deposit.toStringAsFixed(0)}'),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: () => showSendBillSheet(context,
+                    rental: rental, vehicle: vehicle),
+                icon: const Icon(Icons.receipt_long_outlined, size: 18),
+                label: const Text('Send bill to customer'),
+              ),
               const SizedBox(height: 22),
               Text('Verification photos',
                   style: Theme.of(context).textTheme.titleLarge),
