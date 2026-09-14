@@ -45,11 +45,10 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.surface,
 
       // Default font
-      fontFamily: GoogleFonts.manrope().fontFamily,
+      fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
     );
 
     return base.copyWith(
-
       // --------------------------------------------------
       // APP BAR
       // --------------------------------------------------
@@ -60,8 +59,7 @@ class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-
-        titleTextStyle: GoogleFonts.manrope(
+        titleTextStyle: GoogleFonts.plusJakartaSans(
           fontSize: 20,
           fontWeight: FontWeight.w900,
           color: AppColors.textPrimary,
@@ -72,100 +70,99 @@ class AppTheme {
       // TEXT THEME
       // --------------------------------------------------
 
-      textTheme: GoogleFonts.manropeTextTheme(
+      textTheme: GoogleFonts.plusJakartaSansTextTheme(
         base.textTheme,
       ).copyWith(
-
         // Very large headings
-        displayLarge: GoogleFonts.manrope(
+        displayLarge: GoogleFonts.plusJakartaSans(
           fontSize: 32,
           fontWeight: FontWeight.w900,
           color: AppColors.textPrimary,
         ),
 
-        displayMedium: GoogleFonts.manrope(
+        displayMedium: GoogleFonts.plusJakartaSans(
           fontSize: 28,
           fontWeight: FontWeight.w900,
           color: AppColors.textPrimary,
         ),
 
-        displaySmall: GoogleFonts.manrope(
+        displaySmall: GoogleFonts.plusJakartaSans(
           fontSize: 26,
           fontWeight: FontWeight.w900,
           color: AppColors.textPrimary,
         ),
 
         // Main headings
-        headlineLarge: GoogleFonts.manrope(
+        headlineLarge: GoogleFonts.plusJakartaSans(
           fontSize: 26,
           fontWeight: FontWeight.w900,
           color: AppColors.textPrimary,
         ),
 
-        headlineMedium: GoogleFonts.manrope(
+        headlineMedium: GoogleFonts.plusJakartaSans(
           fontSize: 24,
           fontWeight: FontWeight.w900,
           color: AppColors.textPrimary,
         ),
 
-        headlineSmall: GoogleFonts.manrope(
+        headlineSmall: GoogleFonts.plusJakartaSans(
           fontSize: 22,
           fontWeight: FontWeight.w900,
           color: AppColors.textPrimary,
         ),
 
         // Titles
-        titleLarge: GoogleFonts.manrope(
+        titleLarge: GoogleFonts.plusJakartaSans(
           fontSize: 20,
           fontWeight: FontWeight.w900,
           color: AppColors.textPrimary,
         ),
 
-        titleMedium: GoogleFonts.manrope(
+        titleMedium: GoogleFonts.plusJakartaSans(
           fontSize: 18,
           fontWeight: FontWeight.w800,
           color: AppColors.textPrimary,
         ),
 
-        titleSmall: GoogleFonts.manrope(
+        titleSmall: GoogleFonts.plusJakartaSans(
           fontSize: 16,
           fontWeight: FontWeight.w800,
           color: AppColors.textPrimary,
         ),
 
         // Body
-        bodyLarge: GoogleFonts.manrope(
+        bodyLarge: GoogleFonts.plusJakartaSans(
           fontSize: 16,
           fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
         ),
 
-        bodyMedium: GoogleFonts.manrope(
+        bodyMedium: GoogleFonts.plusJakartaSans(
           fontSize: 14,
           fontWeight: FontWeight.w700,
           color: AppColors.textSecondary,
         ),
 
-        bodySmall: GoogleFonts.manrope(
+        bodySmall: GoogleFonts.plusJakartaSans(
           fontSize: 12,
           fontWeight: FontWeight.w700,
           color: AppColors.textSecondary,
         ),
 
         // Labels / buttons
-        labelLarge: GoogleFonts.manrope(
+        labelLarge: GoogleFonts.plusJakartaSans(
           fontSize: 15,
           fontWeight: FontWeight.w900,
           color: AppColors.textPrimary,
         ),
 
-        labelMedium: GoogleFonts.manrope(
+        labelMedium: GoogleFonts.plusJakartaSans(
           fontSize: 14,
           fontWeight: FontWeight.w800,
           color: AppColors.textPrimary,
         ),
 
-        labelSmall: GoogleFonts.manrope(
+        labelSmall: GoogleFonts.plusJakartaSans(
           fontSize: 12,
           fontWeight: FontWeight.w800,
           color: AppColors.textPrimary,
@@ -180,19 +177,15 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primaryRed,
           foregroundColor: Colors.white,
-
           elevation: 0,
-
           padding: const EdgeInsets.symmetric(
             vertical: 16,
             horizontal: 20,
           ),
-
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-
-          textStyle: GoogleFonts.manrope(
+          textStyle: GoogleFonts.plusJakartaSans(
             fontSize: 15,
             fontWeight: FontWeight.w900,
           ),
@@ -206,22 +199,18 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.textPrimary,
-
           side: BorderSide(
             color: AppColors.cardMuted,
             width: 1.4,
           ),
-
           padding: const EdgeInsets.symmetric(
             vertical: 16,
             horizontal: 20,
           ),
-
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-
-          textStyle: GoogleFonts.manrope(
+          textStyle: GoogleFonts.plusJakartaSans(
             fontSize: 15,
             fontWeight: FontWeight.w900,
           ),
@@ -235,24 +224,20 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.card,
-
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,
         ),
-
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
         ),
-
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
             color: AppColors.cardMuted,
           ),
         ),
-
         focusedBorder: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(14)),
           borderSide: BorderSide(
@@ -260,13 +245,11 @@ class AppTheme {
             width: 1.6,
           ),
         ),
-
-        labelStyle: GoogleFonts.manrope(
+        labelStyle: GoogleFonts.plusJakartaSans(
           color: AppColors.textSecondary,
           fontWeight: FontWeight.w700,
         ),
-
-        hintStyle: GoogleFonts.manrope(
+        hintStyle: GoogleFonts.plusJakartaSans(
           color: AppColors.textSecondary,
           fontWeight: FontWeight.w600,
         ),
@@ -279,11 +262,9 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.card,
         elevation: 0,
-
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-
         margin: EdgeInsets.zero,
       ),
 
