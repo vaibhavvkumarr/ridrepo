@@ -10,6 +10,7 @@ class Vehicle {
   final DateTime createdAt;
   final DateTime? insuranceExpiry;
   final DateTime? pollutionExpiry;
+  final String? photoPath;
 
   Vehicle({
     this.id,
@@ -21,6 +22,7 @@ class Vehicle {
     DateTime? createdAt,
     this.insuranceExpiry,
     this.pollutionExpiry,
+    this.photoPath,
   }) : createdAt = createdAt ?? DateTime.now();
 
   Vehicle copyWith({
@@ -33,6 +35,7 @@ class Vehicle {
     DateTime? createdAt,
     DateTime? insuranceExpiry,
     DateTime? pollutionExpiry,
+    String? photoPath,
   }) {
     return Vehicle(
       id: id ?? this.id,
@@ -44,6 +47,7 @@ class Vehicle {
       createdAt: createdAt ?? this.createdAt,
       insuranceExpiry: insuranceExpiry ?? this.insuranceExpiry,
       pollutionExpiry: pollutionExpiry ?? this.pollutionExpiry,
+      photoPath: photoPath ?? this.photoPath,
     );
   }
 
@@ -58,6 +62,7 @@ class Vehicle {
       'createdAt': createdAt.toIso8601String(),
       'insuranceExpiry': insuranceExpiry?.toIso8601String(),
       'pollutionExpiry': pollutionExpiry?.toIso8601String(),
+      'photoPath': photoPath,
     };
   }
 
@@ -76,6 +81,7 @@ class Vehicle {
       pollutionExpiry: map['pollutionExpiry'] != null
           ? DateTime.parse(map['pollutionExpiry'] as String)
           : null,
+      photoPath: map['photoPath'] as String?,
     );
   }
 }

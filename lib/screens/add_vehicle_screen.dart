@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../db/database_helper.dart';
 import '../models/vehicle.dart';
@@ -35,10 +39,48 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   final _colourController = TextEditingController();
   DateTime? _insuranceExpiry;
   DateTime? _pollutionExpiry;
+  File? _photo;
   bool _saving = false;
+  final _picker = ImagePicker();
 
   void _pickColour(String name) {
     setState(() => _colourController.text = name);
+  }
+
+  Future<void> _pickPhoto() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: AppColors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: const Text('Take photo'),
+              onTap: () => Navigator.of(ctx).pop(ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Choose from gallery'),
+              onTap: () => Navigator.of(ctx).pop(ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null) return;
+    final picked = await _picker.pickImage(source: source, imageQuality: 80);
+    if (picked == null) return;
+
+    final dir = await getApplicationDocumentsDirectory();
+    final fileName = 'vehicle_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final saved = await File(picked.path).copy('${dir.path}/$fileName');
+
+    if (!mounted) return;
+    setState(() => _photo = saved);
   }
 
   Future<void> _pickExpiryDate({required bool isInsurance}) async {
@@ -77,6 +119,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
       colour: _colourController.text.trim(),
       insuranceExpiry: _insuranceExpiry,
       pollutionExpiry: _pollutionExpiry,
+      photoPath: _photo?.path,
     );
     await DatabaseHelper.instance.insertVehicle(vehicle);
     if (!mounted) return;
@@ -103,6 +146,39 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
+              InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: _pickPhoto,
+                child: Container(
+                  height: 100,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: AppColors.cardMuted,
+                    borderRadius: BorderRadius.circular(14),
+                    image: _photo != null
+                        ? DecorationImage(
+                            image: FileImage(_photo!), fit: BoxFit.cover)
+                        : null,
+                  ),
+                  child: _photo == null
+                      ? Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_a_photo_outlined,
+                                color: AppColors.textSecondary, size: 24),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Add a photo (optional)',
+                              style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: AppColors.textSecondary),
+                            ),
+                          ],
+                        )
+                      : null,
+                ),
+              ),
+              const SizedBox(height: 12),
               Autocomplete<String>(
                 textEditingController: _modelController,
                 focusNode: _modelFocusNode,
@@ -178,7 +254,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                   );
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _numberController,
                 textCapitalization: TextCapitalization.characters,
@@ -190,22 +266,24 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                     ? 'Enter $label number'
                     : null,
               ),
-              const SizedBox(height: 16),
-              Text('Colour', style: Theme.of(context).textTheme.bodyMedium),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  for (final entry in _frequentColours)
-                    _ColourChip(
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 36,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _frequentColours.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final entry = _frequentColours[index];
+                    return _ColourChip(
                       name: entry.$1,
                       swatch: entry.$2,
                       selected: _colourController.text.trim().toLowerCase() ==
                           entry.$1.toLowerCase(),
                       onTap: () => _pickColour(entry.$1),
-                    ),
-                ],
+                    );
+                  },
+                ),
               ),
               const SizedBox(height: 10),
               TextFormField(
@@ -219,19 +297,27 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
                 validator: (v) =>
                     (v == null || v.trim().isEmpty) ? 'Enter colour' : null,
               ),
-              const SizedBox(height: 16),
-              _ExpiryDateField(
-                label: 'Insurance expiry date',
-                date: _insuranceExpiry,
-                onTap: () => _pickExpiryDate(isInsurance: true),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _ExpiryDateField(
+                      label: 'Insurance',
+                      date: _insuranceExpiry,
+                      onTap: () => _pickExpiryDate(isInsurance: true),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _ExpiryDateField(
+                      label: 'Pollution',
+                      date: _pollutionExpiry,
+                      onTap: () => _pickExpiryDate(isInsurance: false),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 14),
-              _ExpiryDateField(
-                label: 'Pollution expiry date',
-                date: _pollutionExpiry,
-                onTap: () => _pickExpiryDate(isInsurance: false),
-              ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _saving ? null : _save,
                 child: _saving
@@ -266,29 +352,37 @@ class _ExpiryDateField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateFormat = DateFormat('d MMM yyyy');
+    final dateFormat = DateFormat('d MMM yy');
     return InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppColors.cardMuted),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.event_rounded,
-                color: AppColors.primaryRed, size: 20),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(label,
-                  style: const TextStyle(fontWeight: FontWeight.w600)),
+            Row(
+              children: [
+                const Icon(Icons.event_rounded,
+                    color: AppColors.primaryRed, size: 15),
+                const SizedBox(width: 6),
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary)),
+              ],
             ),
+            const SizedBox(height: 4),
             Text(
               date != null ? dateFormat.format(date!) : 'Select date',
               style: TextStyle(
+                fontSize: 14,
                 color: date != null
                     ? AppColors.textPrimary
                     : AppColors.textSecondary,
@@ -321,7 +415,7 @@ class _ColourChip extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: selected
               ? AppColors.primaryRed.withValues(alpha: 0.12)

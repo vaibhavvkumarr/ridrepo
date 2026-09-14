@@ -25,7 +25,7 @@ class DatabaseHelper {
     final path = join(dbPath, 'ridr.db');
     return openDatabase(
       path,
-      version: 6,
+      version: 7,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE vehicles (
@@ -37,7 +37,8 @@ class DatabaseHelper {
             status TEXT NOT NULL DEFAULT 'available',
             createdAt TEXT NOT NULL,
             insuranceExpiry TEXT,
-            pollutionExpiry TEXT
+            pollutionExpiry TEXT,
+            photoPath TEXT
           )
         ''');
         await db.execute('''
@@ -231,6 +232,9 @@ class DatabaseHelper {
               .execute('ALTER TABLE vehicles ADD COLUMN insuranceExpiry TEXT');
           await db
               .execute('ALTER TABLE vehicles ADD COLUMN pollutionExpiry TEXT');
+        }
+        if (oldVersion < 7) {
+          await db.execute('ALTER TABLE vehicles ADD COLUMN photoPath TEXT');
         }
       },
     );

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../db/database_helper.dart';
@@ -104,14 +106,9 @@ class _AllVehiclesScreenState extends State<AllVehiclesScreen> {
                           children: [
                             Row(
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.cardMuted,
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  child: Icon(widget.type.icon,
-                                      color: AppColors.primaryRed),
+                                _VehicleThumbnail(
+                                  photoPath: vehicle.photoPath,
+                                  icon: widget.type.icon,
                                 ),
                                 const SizedBox(width: 14),
                                 Expanded(
@@ -172,6 +169,33 @@ class _AllVehiclesScreenState extends State<AllVehiclesScreen> {
                       );
                     },
                   ),
+      ),
+    );
+  }
+}
+
+/// Vehicle photo if one was added, otherwise the vehicle type's icon.
+class _VehicleThumbnail extends StatelessWidget {
+  final String? photoPath;
+  final IconData icon;
+
+  const _VehicleThumbnail({required this.photoPath, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    final file = photoPath != null ? File(photoPath!) : null;
+    final hasPhoto = file != null && file.existsSync();
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        width: 42,
+        height: 42,
+        padding: hasPhoto ? null : const EdgeInsets.all(10),
+        color: AppColors.cardMuted,
+        child: hasPhoto
+            ? Image.file(file, fit: BoxFit.cover)
+            : Icon(icon, color: AppColors.primaryRed),
       ),
     );
   }
