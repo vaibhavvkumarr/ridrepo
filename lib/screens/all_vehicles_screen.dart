@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../db/database_helper.dart';
 import '../models/vehicle.dart';
 import '../models/vehicle_type.dart';
+import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/vehicle_document_dates.dart';
 
@@ -69,6 +70,7 @@ class _AllVehiclesScreenState extends State<AllVehiclesScreen> {
     );
     if (confirmed == true) {
       await DatabaseHelper.instance.deleteVehicle(vehicle.id!);
+      await NotificationService.instance.cancelVehicleReminders(vehicle.id!);
       _load();
     }
   }

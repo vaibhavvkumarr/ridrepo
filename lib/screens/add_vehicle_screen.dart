@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import '../db/database_helper.dart';
 import '../models/vehicle.dart';
 import '../models/vehicle_type.dart';
+import '../services/notification_service.dart';
 import '../theme/app_theme.dart';
 
 const _frequentColours = <(String, Color)>[
@@ -121,7 +122,9 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
       pollutionExpiry: _pollutionExpiry,
       photoPath: _photo?.path,
     );
-    await DatabaseHelper.instance.insertVehicle(vehicle);
+    final id = await DatabaseHelper.instance.insertVehicle(vehicle);
+    await NotificationService.instance
+        .scheduleVehicleReminders(vehicle.copyWith(id: id));
     if (!mounted) return;
     Navigator.of(context).pop();
   }
