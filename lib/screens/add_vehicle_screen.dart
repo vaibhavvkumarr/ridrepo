@@ -30,6 +30,7 @@ class AddVehicleScreen extends StatefulWidget {
 class _AddVehicleScreenState extends State<AddVehicleScreen> {
   final _formKey = GlobalKey<FormState>();
   final _modelController = TextEditingController();
+  final _modelFocusNode = FocusNode();
   final _numberController = TextEditingController();
   final _colourController = TextEditingController();
   DateTime? _insuranceExpiry;
@@ -85,6 +86,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
   @override
   void dispose() {
     _modelController.dispose();
+    _modelFocusNode.dispose();
     _numberController.dispose();
     _colourController.dispose();
     super.dispose();
@@ -101,16 +103,80 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              TextFormField(
-                controller: _modelController,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  labelText: '$label model',
-                  hintText: widget.type.modelHint,
-                ),
-                validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Enter $label model'
-                    : null,
+              Autocomplete<String>(
+                textEditingController: _modelController,
+                focusNode: _modelFocusNode,
+                optionsBuilder: (value) {
+                  if (value.text.isEmpty) return const Iterable<String>.empty();
+                  final query = value.text.toLowerCase();
+                  return widget.type.brandSuggestions
+                      .where((b) => b.toLowerCase().startsWith(query));
+                },
+                onSelected: (selection) {
+                  _modelController.text = selection;
+                  _modelController.selection = TextSelection.collapsed(
+                    offset: selection.length,
+                  );
+                },
+                fieldViewBuilder:
+                    (context, controller, focusNode, onFieldSubmitted) {
+                  return TextFormField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: InputDecoration(
+                      labelText: '$label model',
+                      hintText: widget.type.modelHint,
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Enter $label model'
+                        : null,
+                  );
+                },
+                optionsViewBuilder: (context, onSelected, options) {
+                  return Align(
+                    alignment: Alignment.topLeft,
+                    child: Material(
+                      elevation: 4,
+                      borderRadius: BorderRadius.circular(14),
+                      color: AppColors.card,
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width - 40,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxHeight: 220),
+                          child: ListView.builder(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            shrinkWrap: true,
+                            itemCount: options.length,
+                            itemBuilder: (context, index) {
+                              final option = options.elementAt(index);
+                              return InkWell(
+                                onTap: () => onSelected(option),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 12),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.north_west_rounded,
+                                          size: 16,
+                                          color: AppColors.textSecondary),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        option,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w700),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 16),
               TextFormField(

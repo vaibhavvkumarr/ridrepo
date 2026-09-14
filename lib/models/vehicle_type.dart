@@ -73,6 +73,64 @@ extension VehicleTypeX on VehicleType {
     }
   }
 
+  /// Common brands shown as suggestions while typing a vehicle's model.
+  List<String> get brandSuggestions {
+    switch (this) {
+      case VehicleType.bike:
+        return const [
+          'Honda',
+          'Hero',
+          'Yamaha',
+          'Bajaj',
+          'TVS',
+          'Royal Enfield',
+          'Suzuki',
+          'KTM',
+          'Ola Electric',
+        ];
+      case VehicleType.car:
+        return const [
+          'Maruti Suzuki',
+          'Hyundai',
+          'Tata',
+          'Mahindra',
+          'Kia',
+          'Honda',
+          'Toyota',
+          'MG',
+          'Renault',
+        ];
+      case VehicleType.auto:
+        return const ['Bajaj', 'Piaggio', 'TVS', 'Mahindra', 'Atul'];
+      case VehicleType.bus:
+        return const [
+          'Tata',
+          'Ashok Leyland',
+          'Eicher',
+          'Mahindra',
+          'Force',
+        ];
+      case VehicleType.truck:
+        return const [
+          'Tata',
+          'Ashok Leyland',
+          'Eicher',
+          'Mahindra',
+          'BharatBenz',
+        ];
+      case VehicleType.others:
+        return const [
+          'JCB',
+          'Caterpillar',
+          'L&T',
+          'Escorts',
+          'Mahindra',
+          'Case',
+          'Komatsu',
+        ];
+    }
+  }
+
   static VehicleType fromKey(String key) {
     return VehicleType.values.firstWhere(
       (t) => t.name == key,
