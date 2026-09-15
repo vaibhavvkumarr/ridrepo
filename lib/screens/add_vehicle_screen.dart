@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -123,10 +124,12 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
       photoPath: _photo?.path,
     );
     final id = await DatabaseHelper.instance.insertVehicle(vehicle);
-    await NotificationService.instance
-        .scheduleVehicleReminders(vehicle.copyWith(id: id));
     if (!mounted) return;
     Navigator.of(context).pop();
+    // Best-effort: reminder scheduling never blocks the save flow above —
+    // NotificationService itself times out and swallows any plugin failure.
+    unawaited(NotificationService.instance
+        .scheduleVehicleReminders(vehicle.copyWith(id: id)));
   }
 
   @override

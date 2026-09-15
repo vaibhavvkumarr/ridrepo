@@ -12,6 +12,7 @@ import '../models/vehicle.dart';
 import '../models/vehicle_type.dart';
 import '../settings/currency_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/rental_agreement.dart';
 import '../widgets/vehicle_document_dates.dart';
 
 class RentalFormScreen extends StatefulWidget {
@@ -177,6 +178,9 @@ class _RentalFormScreenState extends State<RentalFormScreen> {
     await DatabaseHelper.instance
         .updateVehicleStatus(widget.vehicle.id!, 'rented');
 
+    if (!mounted) return;
+    await showSendAgreementSheet(context,
+        rental: rental, vehicle: widget.vehicle);
     if (!mounted) return;
     Navigator.of(context).pop();
   }

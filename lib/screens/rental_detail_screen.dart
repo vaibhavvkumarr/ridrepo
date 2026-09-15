@@ -11,6 +11,7 @@ import '../models/vehicle.dart';
 import '../models/vehicle_type.dart';
 import '../settings/currency_controller.dart';
 import '../theme/app_theme.dart';
+import '../widgets/rental_agreement.dart';
 import '../widgets/send_bill_sheet.dart';
 import '../widgets/vehicle_document_dates.dart';
 
@@ -293,6 +294,13 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
                     rental: rental, vehicle: vehicle),
                 icon: const Icon(Icons.receipt_long_outlined, size: 18),
                 label: const Text('Send bill to customer'),
+              ),
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: () => showSendAgreementSheet(context,
+                    rental: rental, vehicle: vehicle),
+                icon: const Icon(Icons.description_outlined, size: 18),
+                label: const Text('Send rental agreement'),
               ),
               const SizedBox(height: 22),
               Text('Verification photos',
