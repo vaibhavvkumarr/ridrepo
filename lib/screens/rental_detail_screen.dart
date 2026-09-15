@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../db/database_helper.dart';
 import '../models/app_currency.dart';
@@ -26,6 +27,16 @@ class RentalDetailScreen extends StatefulWidget {
 
 class _RentalDetailScreenState extends State<RentalDetailScreen> {
   bool _ending = false;
+
+  Future<void> _callCustomer(String phone) async {
+    final uri = Uri(scheme: 'tel', path: phone);
+    final launched = await launchUrl(uri);
+    if (!launched && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not open the dialer for $phone')),
+      );
+    }
+  }
 
   String _formatDuration(Duration duration) {
     final minutes = duration.inMinutes;
@@ -202,7 +213,11 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
               const SizedBox(height: 10),
               _InfoRow(label: 'Name', value: rental.customerName),
               _InfoRow(label: 'Age', value: '${rental.age}'),
-              _InfoRow(label: 'Contact', value: rental.contactNumber),
+              _InfoRow(
+                label: 'Contact',
+                value: rental.contactNumber,
+                onCallTap: () => _callCustomer(rental.contactNumber),
+              ),
               _InfoRow(label: 'Govt. ID number', value: rental.aadharNumber),
               const SizedBox(height: 22),
               Text('Trip window',
@@ -328,7 +343,8 @@ class _RentalDetailScreenState extends State<RentalDetailScreen> {
 class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
-  const _InfoRow({required this.label, required this.value});
+  final VoidCallback? onCallTap;
+  const _InfoRow({required this.label, required this.value, this.onCallTap});
 
   @override
   Widget build(BuildContext context) {
@@ -341,10 +357,33 @@ class _InfoRow extends StatelessWidget {
                 Text(label, style: TextStyle(color: AppColors.textSecondary)),
           ),
           Expanded(
-            child: Text(
-              value,
-              textAlign: TextAlign.right,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Flexible(
+                  child: Text(
+                    value,
+                    textAlign: TextAlign.right,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                if (onCallTap != null) ...[
+                  const SizedBox(width: 8),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: onCallTap,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppColors.success.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.call_rounded,
+                          color: AppColors.success, size: 16),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         ],

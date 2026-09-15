@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../db/database_helper.dart';
 import '../models/customer.dart';
@@ -41,6 +42,16 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
     });
   }
 
+  Future<void> _callCustomer(String phone) async {
+    final uri = Uri(scheme: 'tel', path: phone);
+    final launched = await launchUrl(uri);
+    if (!launched && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not open the dialer for $phone')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final customer = widget.customer;
@@ -72,8 +83,29 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                         Text(customer.name,
                             style: Theme.of(context).textTheme.titleLarge),
                         const SizedBox(height: 6),
-                        Text('${customer.contactNumber} · Age ${customer.age}',
-                            style: Theme.of(context).textTheme.bodyMedium),
+                        Row(
+                          children: [
+                            Text(
+                                '${customer.contactNumber} · Age ${customer.age}',
+                                style: Theme.of(context).textTheme.bodyMedium),
+                            const SizedBox(width: 8),
+                            InkWell(
+                              borderRadius: BorderRadius.circular(20),
+                              onTap: () =>
+                                  _callCustomer(customer.contactNumber),
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color:
+                                      AppColors.success.withValues(alpha: 0.12),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.call_rounded,
+                                    color: AppColors.success, size: 16),
+                              ),
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 2),
                         Text('Govt. ID: ${customer.aadharNumber}',
                             style: Theme.of(context).textTheme.bodyMedium),
@@ -201,8 +233,7 @@ class _RentalHistoryTile extends StatelessWidget {
                 ],
               ),
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 color: (rental.status == 'active'
                         ? AppColors.warning
